@@ -32,7 +32,7 @@ trap 'error-trap' ERR
 
 cd $(dirname $0)/..
 
-goimports -w .
+goimports -w $(ls | grep -Ev "LICENSE|README.md|vendor")
 
 INTEGRATION_REGEXP=".* Integration"
 GINKGO_OPTS="-r

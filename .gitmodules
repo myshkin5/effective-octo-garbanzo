@@ -1,0 +1,12 @@
+[submodule "vendor/github.com/lib/pq"]
+	path = vendor/github.com/lib/pq
+	url = https://github.com/lib/pq.git
+[submodule "vendor/github.com/onsi/ginkgo"]
+	path = vendor/github.com/onsi/ginkgo
+	url = https://github.com/onsi/ginkgo.git
+[submodule "vendor/github.com/onsi/gomega"]
+	path = vendor/github.com/onsi/gomega
+	url = https://github.com/onsi/gomega.git
+[submodule "vendor/github.com/op/go-logging"]
+	path = vendor/github.com/op/go-logging
+	url = https://github.com/op/go-logging.git
