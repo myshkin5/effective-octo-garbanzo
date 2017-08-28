@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+
+check-cmd() {
+    CMD=$1
+    which $CMD > /dev/null
+    if [[ $? == 1 ]]; then
+        help-cmd $@
+    fi
+    test -x $(which $CMD)
+    if [[ $? == 1 ]]; then
+        help-cmd $@
+    fi
+}
+
+help-cmd() {
+    echo "$1 not found"
+    shift
+    echo "Execute the following to install: $*"
+    exit 1
+}
+
+check-cmd goimports "go get golang.org/x/tools/cmd/goimports"
+check-cmd ginkgo    "go get github.com/onsi/ginkgo/ginkgo"
+
+set -e
+
+error-trap() {
+    echo -e "\033[1m\033[41m Failed!                                                                        \033[0m"
+}
+
+trap 'error-trap' ERR
+
+cd $(dirname $0)/..
+
+goimports -w .
+
+INTEGRATION_REGEXP=".* Integration"
+GINKGO_OPTS="-r
+    --keepGoing
+    --randomizeAllSpecs
+    --randomizeSuites
+    --failOnPending
+    --cover
+    --trace
+    --race
+    --progress
+    $@"
+
+echo -e "\033[1m\033[42m Unit tests...                                                                  \033[0m"
+ginkgo -r --skip="$INTEGRATION_REGEXP" $GINKGO_OPTS
+
+echo -e "\033[1m\033[42m Integration tests...                                                           \033[0m"
+ginkgo -r --focus="$INTEGRATION_REGEXP" $GINKGO_OPTS
+
+echo -e "\033[1m\033[42m Completed successfully.                                                        \033[0m"
