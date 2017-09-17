@@ -24,13 +24,18 @@ check-cmd ginkgo    "go get github.com/onsi/ginkgo/ginkgo"
 
 set -e
 
+cd $(dirname $0)/..
+
+stop-integration-services() {
+    docker-compose --file scripts/postgres-docker-compose.yml down
+}
+
 error-trap() {
     echo -e "\033[1m\033[41m Failed!                                                                        \033[0m"
+    stop-integration-services
 }
 
 trap 'error-trap' ERR
-
-cd $(dirname $0)/..
 
 goimports -w $(ls | grep -Ev "LICENSE|README.md|vendor")
 
@@ -50,6 +55,17 @@ echo -e "\033[1m\033[42m Unit tests...                                          
 ginkgo -r --skip="$INTEGRATION_REGEXP" $GINKGO_OPTS
 
 echo -e "\033[1m\033[42m Integration tests...                                                           \033[0m"
+
+docker-compose --file ./scripts/postgres-docker-compose.yml up -d --force-recreate
+until PGPASSWORD=garbanzo-secret psql --port=5678 --host=0.0.0.0 --username=garbanzo --command='\l' > /dev/null 2>&1; do
+  sleep 1
+done
+
+go run persistence/migrate/main.go \
+    file://./resources/ddl postgres://garbanzo:garbanzo-secret@localhost:5678/garbanzo?sslmode=disable
+
 ginkgo -r --focus="$INTEGRATION_REGEXP" $GINKGO_OPTS
+
+stop-integration-services
 
 echo -e "\033[1m\033[42m Completed successfully.                                                        \033[0m"

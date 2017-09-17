@@ -1,0 +1,9 @@
+version: "3"
+services:
+  postgres:
+    image: postgres:latest
+    ports:
+      - "5678:5432"
+    environment:
+      - POSTGRES_USER=garbanzo
+      - POSTGRES_PASSWORD=garbanzo-secret

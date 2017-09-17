@@ -10,3 +10,6 @@
 [submodule "vendor/github.com/op/go-logging"]
 	path = vendor/github.com/op/go-logging
 	url = https://github.com/op/go-logging.git
+[submodule "vendor/github.com/mattes/migrate"]
+	path = vendor/github.com/mattes/migrate
+	url = https://github.com/mattes/migrate.git

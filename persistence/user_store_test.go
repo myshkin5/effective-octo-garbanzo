@@ -13,31 +13,52 @@ import (
 var _ = Describe("UserStore Integration", func() {
 	ctx := context.Background()
 	var (
-		database persistence.Database
+		database *sql.DB
 	)
 
 	BeforeEach(func() {
 		var err error
-		database, err = sql.Open("postgres", "postgres://localhost/garbanzo?sslmode=disable")
+		database, err = sql.Open(
+			"postgres",
+			"postgres://garbanzo:garbanzo-secret@localhost:5678/garbanzo?sslmode=disable")
+		Expect(err).NotTo(HaveOccurred())
+
+		query := "delete from garbanzo_user"
+		_, err = database.ExecContext(ctx, query)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
 	It("returns not found when fetching an unknown user", func() {
-		// TODO: Eventually this will be run against a clean database to assure that this user never exists
 		_, err := persistence.FetchUserById(ctx, database, 727385737)
 
 		Expect(err).To(Equal(persistence.ErrNotFound))
 	})
 
 	It("returns not found when deleting an unknown user", func() {
-		// TODO: Eventually this will be run against a clean database to assure that this user never exists
 		err := persistence.DeleteUserById(ctx, database, 727385737)
 
 		Expect(err).To(Equal(persistence.ErrNotFound))
 	})
 
-	It("creates, fetches, and deletes a new user", func() {
-		// TODO: Break this up when we have a clean test database
+	It("creates and fetches a new user", func() {
+		firstName := "Joe"
+		lastName := "Schmoe"
+		user := persistence.User{
+			FirstName: firstName,
+			LastName:  lastName,
+		}
+
+		userId, err := persistence.CreateUser(ctx, database, user)
+		Expect(err).NotTo(HaveOccurred())
+
+		fetchedUser, err := persistence.FetchUserById(ctx, database, userId)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(fetchedUser.Id).To(Equal(userId))
+		Expect(fetchedUser.FirstName).To(Equal(firstName))
+		Expect(fetchedUser.LastName).To(Equal(lastName))
+	})
+
+	It("ignores the supplied id on create", func() {
 		ignoredId := 82475928
 		firstName := "Joe"
 		lastName := "Schmoe"
@@ -50,12 +71,18 @@ var _ = Describe("UserStore Integration", func() {
 		userId, err := persistence.CreateUser(ctx, database, user)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(userId).NotTo(Equal(ignoredId))
+	})
 
-		fetchedUser, err := persistence.FetchUserById(ctx, database, userId)
+	It("creates and deletes a new user", func() {
+		firstName := "Joe"
+		lastName := "Schmoe"
+		user := persistence.User{
+			FirstName: firstName,
+			LastName:  lastName,
+		}
+
+		userId, err := persistence.CreateUser(ctx, database, user)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(fetchedUser.Id).To(Equal(userId))
-		Expect(fetchedUser.FirstName).To(Equal(firstName))
-		Expect(fetchedUser.LastName).To(Equal(lastName))
 
 		err = persistence.DeleteUserById(ctx, database, userId)
 		Expect(err).NotTo(HaveOccurred())
