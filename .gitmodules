@@ -13,3 +13,12 @@
 [submodule "vendor/github.com/mattes/migrate"]
 	path = vendor/github.com/mattes/migrate
 	url = https://github.com/mattes/migrate.git
+[submodule "vendor/github.com/gorilla/mux"]
+	path = vendor/github.com/gorilla/mux
+	url = https://github.com/gorilla/mux.git
+[submodule "vendor/github.com/gorilla/handlers"]
+	path = vendor/github.com/gorilla/handlers
+	url = https://github.com/gorilla/handlers.git
+[submodule "vendor/github.com/justinas/alice"]
+	path = vendor/github.com/justinas/alice
+	url = https://github.com/justinas/alice.git
