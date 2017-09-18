@@ -11,6 +11,35 @@ type User struct {
 	LastName  string
 }
 
+func FetchAllUsers(ctx context.Context, database Database) ([]User, error) {
+	query := "select id, first_name, last_name from garbanzo_user order by id"
+
+	rows, err := database.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []User
+	for rows.Next() {
+		var id int
+		var firstName, lastName string
+		err = rows.Scan(&id, &firstName, &lastName)
+		if err != nil {
+			return nil, err
+		}
+
+		user := User{
+			Id:        id,
+			FirstName: firstName,
+			LastName:  lastName,
+		}
+		users = append(users, user)
+	}
+
+	return users, nil
+}
+
 func FetchUserById(ctx context.Context, database Database, id int) (User, error) {
 	query := "select first_name, last_name from garbanzo_user where id = $1"
 
