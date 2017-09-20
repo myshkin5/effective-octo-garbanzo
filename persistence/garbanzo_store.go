@@ -5,14 +5,14 @@ import (
 	"database/sql"
 )
 
-type User struct {
+type Garbanzo struct {
 	Id        int
 	FirstName string
 	LastName  string
 }
 
-func FetchAllUsers(ctx context.Context, database Database) ([]User, error) {
-	query := "select id, first_name, last_name from garbanzo_user order by id"
+func FetchAllGarbanzos(ctx context.Context, database Database) ([]Garbanzo, error) {
+	query := "select id, first_name, last_name from garbanzo order by id"
 
 	rows, err := database.QueryContext(ctx, query)
 	if err != nil {
@@ -20,7 +20,7 @@ func FetchAllUsers(ctx context.Context, database Database) ([]User, error) {
 	}
 	defer rows.Close()
 
-	var users []User
+	var garbanzos []Garbanzo
 	for rows.Next() {
 		var id int
 		var firstName, lastName string
@@ -29,49 +29,49 @@ func FetchAllUsers(ctx context.Context, database Database) ([]User, error) {
 			return nil, err
 		}
 
-		user := User{
+		garbanzo := Garbanzo{
 			Id:        id,
 			FirstName: firstName,
 			LastName:  lastName,
 		}
-		users = append(users, user)
+		garbanzos = append(garbanzos, garbanzo)
 	}
 
-	return users, nil
+	return garbanzos, nil
 }
 
-func FetchUserById(ctx context.Context, database Database, id int) (User, error) {
-	query := "select first_name, last_name from garbanzo_user where id = $1"
+func FetchGarbanzoById(ctx context.Context, database Database, id int) (Garbanzo, error) {
+	query := "select first_name, last_name from garbanzo where id = $1"
 
 	var firstName, lastName string
 	err := database.QueryRowContext(ctx, query, id).Scan(&firstName, &lastName)
 	if err == sql.ErrNoRows {
-		return User{}, ErrNotFound
+		return Garbanzo{}, ErrNotFound
 	} else if err != nil {
-		return User{}, err
+		return Garbanzo{}, err
 	}
 
-	return User{
+	return Garbanzo{
 		Id:        id,
 		FirstName: firstName,
 		LastName:  lastName,
 	}, nil
 }
 
-func CreateUser(ctx context.Context, database Database, user User) (int, error) {
-	query := "insert into garbanzo_user (first_name, last_name) values ($1, $2) returning id"
+func CreateGarbanzo(ctx context.Context, database Database, garbanzo Garbanzo) (int, error) {
+	query := "insert into garbanzo (first_name, last_name) values ($1, $2) returning id"
 
-	var userId int
-	err := database.QueryRowContext(ctx, query, user.FirstName, user.LastName).Scan(&userId)
+	var garbanzoId int
+	err := database.QueryRowContext(ctx, query, garbanzo.FirstName, garbanzo.LastName).Scan(&garbanzoId)
 	if err != nil {
 		return 0, err
 	}
 
-	return userId, nil
+	return garbanzoId, nil
 }
 
-func DeleteUserById(ctx context.Context, database Database, id int) error {
-	query := "delete from garbanzo_user where id = $1"
+func DeleteGarbanzoById(ctx context.Context, database Database, id int) error {
+	query := "delete from garbanzo where id = $1"
 
 	result, err := database.ExecContext(ctx, query, id)
 	if err != nil {
