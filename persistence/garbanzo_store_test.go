@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/myshkin5/effective-octo-garbanzo/persistence"
+	"github.com/satori/go.uuid"
 )
 
 var _ = Describe("GarbanzoStore Integration", func() {
@@ -37,15 +38,19 @@ var _ = Describe("GarbanzoStore Integration", func() {
 		})
 
 		It("fetches all the garbanzos", func() {
+			apiUUID1 := uuid.NewV4()
 			firstName1 := "Joe"
 			lastName1 := "Schmoe"
 			garbanzo1 := persistence.Garbanzo{
+				APIUUID:   apiUUID1,
 				FirstName: firstName1,
 				LastName:  lastName1,
 			}
+			apiUUID2 := uuid.NewV4()
 			firstName2 := "Marty"
 			lastName2 := "Blarty"
 			garbanzo2 := persistence.Garbanzo{
+				APIUUID:   apiUUID2,
 				FirstName: firstName2,
 				LastName:  lastName2,
 			}
@@ -61,10 +66,12 @@ var _ = Describe("GarbanzoStore Integration", func() {
 			Expect(garbanzos).To(HaveLen(2))
 
 			Expect(garbanzos[0].Id).To(Equal(garbanzoId1))
+			Expect(garbanzos[0].APIUUID).To(Equal(apiUUID1))
 			Expect(garbanzos[0].FirstName).To(Equal(firstName1))
 			Expect(garbanzos[0].LastName).To(Equal(lastName1))
 
 			Expect(garbanzos[1].Id).To(Equal(garbanzoId2))
+			Expect(garbanzos[1].APIUUID).To(Equal(apiUUID2))
 			Expect(garbanzos[1].FirstName).To(Equal(firstName2))
 			Expect(garbanzos[1].LastName).To(Equal(lastName2))
 		})
@@ -78,9 +85,11 @@ var _ = Describe("GarbanzoStore Integration", func() {
 		})
 
 		It("fetches a garbanzo", func() {
+			apiUUID := uuid.NewV4()
 			firstName := "Joe"
 			lastName := "Schmoe"
 			garbanzo := persistence.Garbanzo{
+				APIUUID:   apiUUID,
 				FirstName: firstName,
 				LastName:  lastName,
 			}
@@ -91,6 +100,7 @@ var _ = Describe("GarbanzoStore Integration", func() {
 			fetchedGarbanzo, err := persistence.FetchGarbanzoById(ctx, database, garbanzoId)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fetchedGarbanzo.Id).To(Equal(garbanzoId))
+			Expect(fetchedGarbanzo.APIUUID).To(Equal(apiUUID))
 			Expect(fetchedGarbanzo.FirstName).To(Equal(firstName))
 			Expect(fetchedGarbanzo.LastName).To(Equal(lastName))
 		})
@@ -98,9 +108,11 @@ var _ = Describe("GarbanzoStore Integration", func() {
 
 	Context("CreateGarbanzo", func() {
 		It("creates a new garbanzo", func() {
+			apiUUID := uuid.NewV4()
 			firstName := "Joe"
 			lastName := "Schmoe"
 			garbanzo := persistence.Garbanzo{
+				APIUUID:   apiUUID,
 				FirstName: firstName,
 				LastName:  lastName,
 			}
@@ -111,6 +123,7 @@ var _ = Describe("GarbanzoStore Integration", func() {
 			fetchedGarbanzo, err := persistence.FetchGarbanzoById(ctx, database, garbanzoId)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fetchedGarbanzo.Id).To(Equal(garbanzoId))
+			Expect(fetchedGarbanzo.APIUUID).To(Equal(apiUUID))
 			Expect(fetchedGarbanzo.FirstName).To(Equal(firstName))
 			Expect(fetchedGarbanzo.LastName).To(Equal(lastName))
 		})
@@ -119,6 +132,7 @@ var _ = Describe("GarbanzoStore Integration", func() {
 			ignoredId := 82475928
 			garbanzo := persistence.Garbanzo{
 				Id:        ignoredId,
+				APIUUID:   uuid.NewV4(),
 				FirstName: "Joe",
 				LastName:  "Schmoe",
 			}
@@ -138,6 +152,7 @@ var _ = Describe("GarbanzoStore Integration", func() {
 
 		It("deletes a garbanzo", func() {
 			garbanzo := persistence.Garbanzo{
+				APIUUID:   uuid.NewV4(),
 				FirstName: "Joe",
 				LastName:  "Schmoe",
 			}

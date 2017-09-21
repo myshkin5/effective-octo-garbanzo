@@ -22,3 +22,6 @@
 [submodule "vendor/github.com/justinas/alice"]
 	path = vendor/github.com/justinas/alice
 	url = https://github.com/justinas/alice.git
+[submodule "vendor/github.com/satori/go.uuid"]
+	path = vendor/github.com/satori/go.uuid
+	url = https://github.com/satori/go.uuid.git
