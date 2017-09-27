@@ -47,12 +47,12 @@ func (GarbanzoStore) FetchAllGarbanzos(ctx context.Context, database Database) (
 	return garbanzos, nil
 }
 
-func (GarbanzoStore) FetchGarbanzoById(ctx context.Context, database Database, id int) (Garbanzo, error) {
-	query := "select api_uuid, first_name, last_name from garbanzo where id = $1"
+func (GarbanzoStore) FetchGarbanzoByAPIUUID(ctx context.Context, database Database, apiUUID uuid.UUID) (Garbanzo, error) {
+	query := "select id, first_name, last_name from garbanzo where api_uuid = $1"
 
-	var apiUUID uuid.UUID
+	var id int
 	var firstName, lastName string
-	err := database.QueryRowContext(ctx, query, id).Scan(&apiUUID, &firstName, &lastName)
+	err := database.QueryRowContext(ctx, query, apiUUID).Scan(&id, &firstName, &lastName)
 	if err == sql.ErrNoRows {
 		return Garbanzo{}, ErrNotFound
 	} else if err != nil {
@@ -84,10 +84,10 @@ func (GarbanzoStore) CreateGarbanzo(ctx context.Context, database Database, garb
 	return garbanzoId, nil
 }
 
-func (GarbanzoStore) DeleteGarbanzoById(ctx context.Context, database Database, id int) error {
-	query := "delete from garbanzo where id = $1"
+func (GarbanzoStore) DeleteGarbanzoByAPIUUID(ctx context.Context, database Database, apiUUID uuid.UUID) error {
+	query := "delete from garbanzo where api_uuid = $1"
 
-	result, err := database.ExecContext(ctx, query, id)
+	result, err := database.ExecContext(ctx, query, apiUUID)
 	if err != nil {
 		return err
 	}
