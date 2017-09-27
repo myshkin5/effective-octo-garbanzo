@@ -14,7 +14,9 @@ type Garbanzo struct {
 	LastName  string
 }
 
-func FetchAllGarbanzos(ctx context.Context, database Database) ([]Garbanzo, error) {
+type GarbanzoStore struct{}
+
+func (GarbanzoStore) FetchAllGarbanzos(ctx context.Context, database Database) ([]Garbanzo, error) {
 	query := "select id, api_uuid, first_name, last_name from garbanzo order by id"
 
 	rows, err := database.QueryContext(ctx, query)
@@ -45,7 +47,7 @@ func FetchAllGarbanzos(ctx context.Context, database Database) ([]Garbanzo, erro
 	return garbanzos, nil
 }
 
-func FetchGarbanzoById(ctx context.Context, database Database, id int) (Garbanzo, error) {
+func (GarbanzoStore) FetchGarbanzoById(ctx context.Context, database Database, id int) (Garbanzo, error) {
 	query := "select api_uuid, first_name, last_name from garbanzo where id = $1"
 
 	var apiUUID uuid.UUID
@@ -65,7 +67,7 @@ func FetchGarbanzoById(ctx context.Context, database Database, id int) (Garbanzo
 	}, nil
 }
 
-func CreateGarbanzo(ctx context.Context, database Database, garbanzo Garbanzo) (int, error) {
+func (GarbanzoStore) CreateGarbanzo(ctx context.Context, database Database, garbanzo Garbanzo) (int, error) {
 	query := "insert into garbanzo (api_uuid, first_name, last_name) values ($1, $2, $3) returning id"
 
 	var garbanzoId int
@@ -82,7 +84,7 @@ func CreateGarbanzo(ctx context.Context, database Database, garbanzo Garbanzo) (
 	return garbanzoId, nil
 }
 
-func DeleteGarbanzoById(ctx context.Context, database Database, id int) error {
+func (GarbanzoStore) DeleteGarbanzoById(ctx context.Context, database Database, id int) error {
 	query := "delete from garbanzo where id = $1"
 
 	result, err := database.ExecContext(ctx, query, id)

@@ -2,7 +2,6 @@ package persistence_test
 
 import (
 	"context"
-	"database/sql"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -14,24 +13,25 @@ import (
 var _ = Describe("GarbanzoStore Integration", func() {
 	ctx := context.Background()
 	var (
-		database *sql.DB
+		database persistence.Database
+		store    persistence.GarbanzoStore
 	)
 
 	BeforeEach(func() {
 		var err error
-		database, err = sql.Open(
-			"postgres",
-			"postgres://garbanzo:garbanzo-secret@localhost:5678/garbanzo?sslmode=disable")
+		database, err = persistence.Open()
 		Expect(err).NotTo(HaveOccurred())
 
 		query := "delete from garbanzo"
 		_, err = database.ExecContext(ctx, query)
 		Expect(err).NotTo(HaveOccurred())
+
+		store = persistence.GarbanzoStore{}
 	})
 
 	Context("FetchAllGarbanzos", func() {
 		It("fetches no garbanzos when there are none", func() {
-			garbanzos, err := persistence.FetchAllGarbanzos(ctx, database)
+			garbanzos, err := store.FetchAllGarbanzos(ctx, database)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(garbanzos).To(HaveLen(0))
@@ -55,12 +55,12 @@ var _ = Describe("GarbanzoStore Integration", func() {
 				LastName:  lastName2,
 			}
 
-			garbanzoId1, err := persistence.CreateGarbanzo(ctx, database, garbanzo1)
+			garbanzoId1, err := store.CreateGarbanzo(ctx, database, garbanzo1)
 			Expect(err).NotTo(HaveOccurred())
-			garbanzoId2, err := persistence.CreateGarbanzo(ctx, database, garbanzo2)
+			garbanzoId2, err := store.CreateGarbanzo(ctx, database, garbanzo2)
 			Expect(err).NotTo(HaveOccurred())
 
-			garbanzos, err := persistence.FetchAllGarbanzos(ctx, database)
+			garbanzos, err := store.FetchAllGarbanzos(ctx, database)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(garbanzos).To(HaveLen(2))
@@ -79,7 +79,7 @@ var _ = Describe("GarbanzoStore Integration", func() {
 
 	Context("FetchGarbanzoById", func() {
 		It("returns not found when fetching an unknown garbanzo", func() {
-			_, err := persistence.FetchGarbanzoById(ctx, database, 727385737)
+			_, err := store.FetchGarbanzoById(ctx, database, 727385737)
 
 			Expect(err).To(Equal(persistence.ErrNotFound))
 		})
@@ -94,10 +94,10 @@ var _ = Describe("GarbanzoStore Integration", func() {
 				LastName:  lastName,
 			}
 
-			garbanzoId, err := persistence.CreateGarbanzo(ctx, database, garbanzo)
+			garbanzoId, err := store.CreateGarbanzo(ctx, database, garbanzo)
 			Expect(err).NotTo(HaveOccurred())
 
-			fetchedGarbanzo, err := persistence.FetchGarbanzoById(ctx, database, garbanzoId)
+			fetchedGarbanzo, err := store.FetchGarbanzoById(ctx, database, garbanzoId)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fetchedGarbanzo.Id).To(Equal(garbanzoId))
 			Expect(fetchedGarbanzo.APIUUID).To(Equal(apiUUID))
@@ -117,10 +117,10 @@ var _ = Describe("GarbanzoStore Integration", func() {
 				LastName:  lastName,
 			}
 
-			garbanzoId, err := persistence.CreateGarbanzo(ctx, database, garbanzo)
+			garbanzoId, err := store.CreateGarbanzo(ctx, database, garbanzo)
 			Expect(err).NotTo(HaveOccurred())
 
-			fetchedGarbanzo, err := persistence.FetchGarbanzoById(ctx, database, garbanzoId)
+			fetchedGarbanzo, err := store.FetchGarbanzoById(ctx, database, garbanzoId)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fetchedGarbanzo.Id).To(Equal(garbanzoId))
 			Expect(fetchedGarbanzo.APIUUID).To(Equal(apiUUID))
@@ -137,7 +137,7 @@ var _ = Describe("GarbanzoStore Integration", func() {
 				LastName:  "Schmoe",
 			}
 
-			garbanzoId, err := persistence.CreateGarbanzo(ctx, database, garbanzo)
+			garbanzoId, err := store.CreateGarbanzo(ctx, database, garbanzo)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(garbanzoId).NotTo(Equal(ignoredId))
 		})
@@ -145,7 +145,7 @@ var _ = Describe("GarbanzoStore Integration", func() {
 
 	Context("DeleteGarbanzoById", func() {
 		It("returns not found when deleting an unknown garbanzo", func() {
-			err := persistence.DeleteGarbanzoById(ctx, database, 727385737)
+			err := store.DeleteGarbanzoById(ctx, database, 727385737)
 
 			Expect(err).To(Equal(persistence.ErrNotFound))
 		})
@@ -157,13 +157,13 @@ var _ = Describe("GarbanzoStore Integration", func() {
 				LastName:  "Schmoe",
 			}
 
-			garbanzoId, err := persistence.CreateGarbanzo(ctx, database, garbanzo)
+			garbanzoId, err := store.CreateGarbanzo(ctx, database, garbanzo)
 			Expect(err).NotTo(HaveOccurred())
 
-			err = persistence.DeleteGarbanzoById(ctx, database, garbanzoId)
+			err = store.DeleteGarbanzoById(ctx, database, garbanzoId)
 			Expect(err).NotTo(HaveOccurred())
 
-			err = persistence.DeleteGarbanzoById(ctx, database, garbanzoId)
+			err = store.DeleteGarbanzoById(ctx, database, garbanzoId)
 			Expect(err).To(Equal(persistence.ErrNotFound))
 		})
 	})
