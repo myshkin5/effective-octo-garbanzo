@@ -24,13 +24,13 @@ var _ = Describe("Health", func() {
 		recorder.Code = 0
 
 		router = mux.NewRouter()
-		handlers.MapHealthRoutes(router.Path("/"), alice.Chain{})
+		handlers.MapHealthRoutes(router, alice.Chain{})
 	})
 
 	Describe("happy path", func() {
 		BeforeEach(func() {
 			var err error
-			request, err = http.NewRequest("GET", "/", nil)
+			request, err = http.NewRequest(http.MethodGet, "/health", nil)
 			Expect(err).NotTo(HaveOccurred())
 		})
 

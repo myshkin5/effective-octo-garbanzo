@@ -34,8 +34,16 @@ func (s *GarbanzoService) FetchGarbanzoByAPIUUID(ctx context.Context, apiUUID uu
 	return s.store.FetchGarbanzoByAPIUUID(ctx, s.database, apiUUID)
 }
 
-func (s *GarbanzoService) CreateGarbanzo(ctx context.Context, garbanzo persistence.Garbanzo) (int, error) {
-	return s.store.CreateGarbanzo(ctx, s.database, garbanzo)
+func (s *GarbanzoService) CreateGarbanzo(ctx context.Context, garbanzo persistence.Garbanzo) (persistence.Garbanzo, error) {
+	garbanzo.APIUUID = uuid.NewV4()
+
+	var err error
+	garbanzo.Id, err = s.store.CreateGarbanzo(ctx, s.database, garbanzo)
+	if err != nil {
+		return persistence.Garbanzo{}, err
+	}
+
+	return garbanzo, nil
 }
 
 func (s *GarbanzoService) DeleteGarbanzoByAPIUUID(ctx context.Context, apiUUID uuid.UUID) error {
