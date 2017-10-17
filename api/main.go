@@ -43,6 +43,9 @@ func main() {
 	handlers.MapGarbanzoCollectionRoutes(baseURL, router, middleware, garbanzoService)
 	handlers.MapGarbanzoRoutes(baseURL, router, middleware, garbanzoService)
 
+	// Must be last mapping
+	handlers.MapCatchAllRoutes(router, middleware)
+
 	loggingHandler := gorilla_handlers.LoggingHandler(os.Stdout, router)
 
 	serverAddr := persistence.GetEnvWithDefault("SERVER_ADDR", "localhost")

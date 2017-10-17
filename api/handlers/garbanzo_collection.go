@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/justinas/alice"
 
@@ -21,7 +20,7 @@ func MapGarbanzoCollectionRoutes(baseURL string, router *mux.Router, middleware 
 		garbanzoService: garbanzoService,
 		baseURL:         baseURL + "garbanzos/",
 	}
-	methodHandler := make(handlers.MethodHandler)
+	methodHandler := make(MethodHandler)
 	methodHandler[http.MethodGet] = http.HandlerFunc(handler.get)
 	methodHandler[http.MethodPost] = http.HandlerFunc(handler.post)
 	router.Handle("/garbanzos", middleware.Then(methodHandler))

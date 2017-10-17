@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/justinas/alice"
 	"github.com/satori/go.uuid"
@@ -36,7 +35,7 @@ func MapGarbanzoRoutes(baseURL string, router *mux.Router, middleware alice.Chai
 		garbanzoService: garbanzoService,
 		baseURL:         baseURL + "garbanzos/",
 	}
-	methodHandler := make(handlers.MethodHandler)
+	methodHandler := make(MethodHandler)
 	methodHandler[http.MethodGet] = http.HandlerFunc(handler.get)
 	methodHandler[http.MethodDelete] = http.HandlerFunc(handler.delete)
 	router.Handle("/garbanzos/{apiUUID}", middleware.Then(methodHandler))
