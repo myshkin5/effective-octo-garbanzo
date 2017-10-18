@@ -9,6 +9,7 @@ import (
 	"github.com/justinas/alice"
 
 	"github.com/myshkin5/effective-octo-garbanzo/api/handlers"
+	"github.com/myshkin5/effective-octo-garbanzo/api/handlers/middleware"
 	"github.com/myshkin5/effective-octo-garbanzo/logs"
 	"github.com/myshkin5/effective-octo-garbanzo/persistence"
 	"github.com/myshkin5/effective-octo-garbanzo/services"
@@ -33,7 +34,9 @@ func main() {
 
 	router := mux.NewRouter()
 
-	middleware := alice.New()
+	headersHandler := middleware.StandardHeadersHandler
+
+	middleware := alice.New(headersHandler)
 
 	handlers.MapHealthRoutes(router, middleware)
 

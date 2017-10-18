@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/myshkin5/effective-octo-garbanzo/logs"
 	"github.com/satori/go.uuid"
 )
 
@@ -100,7 +101,7 @@ func (GarbanzoStore) DeleteGarbanzoByAPIUUID(ctx context.Context, database Datab
 	if rowsAffected == 0 {
 		return ErrNotFound
 	} else if rowsAffected > 1 {
-		panic("Deleted multiple rows when expecting only one")
+		logs.Logger.Panic("Deleted multiple rows when expecting only one")
 	}
 
 	return nil

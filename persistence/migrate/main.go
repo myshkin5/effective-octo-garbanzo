@@ -21,11 +21,11 @@ func main() {
 
 	migrator, err := migrate.New(os.Args[1], os.Args[2])
 	if err != nil {
-		panic(err)
+		logs.Logger.Panic(err)
 	}
 
 	err = migrator.Up()
 	if err != nil {
-		panic(err)
+		logs.Logger.Panic(err)
 	}
 }
