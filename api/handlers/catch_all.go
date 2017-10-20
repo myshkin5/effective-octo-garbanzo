@@ -7,10 +7,20 @@ import (
 	"github.com/justinas/alice"
 )
 
-func MapCatchAllRoutes(router *mux.Router, middleware alice.Chain) {
-	router.PathPrefix("/").Handler(middleware.ThenFunc(catchAll))
+func MapCatchAllRoutes(baseURL string, router *mux.Router, middleware alice.Chain) {
+	router.PathPrefix("/").Handler(middleware.ThenFunc(catchAll(baseURL)))
 }
 
-func catchAll(w http.ResponseWriter, _ *http.Request) {
-	Error(w, "Not Found", http.StatusNotFound)
+func catchAll(baseURL string) func(w http.ResponseWriter, req *http.Request) {
+	return func(w http.ResponseWriter, req *http.Request) {
+		if req.Method != http.MethodGet || req.RequestURI != "/" {
+			Error(w, "Not Found", http.StatusNotFound)
+			return
+		}
+
+		Respond(w, http.StatusOK, JSONObject{
+			"health":    baseURL + "health",
+			"garbanzos": baseURL + "garbanzos",
+		})
+	}
 }

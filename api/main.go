@@ -8,6 +8,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/justinas/alice"
 
+	"fmt"
+
 	"github.com/myshkin5/effective-octo-garbanzo/api/handlers"
 	"github.com/myshkin5/effective-octo-garbanzo/api/handlers/middleware"
 	"github.com/myshkin5/effective-octo-garbanzo/logs"
@@ -40,19 +42,21 @@ func main() {
 
 	handlers.MapHealthRoutes(router, middleware)
 
-	// TODO: Get proper base URL for absolute URIs
-	baseURL := "./"
+	port := persistence.GetEnvWithDefault("PORT", "8080")
+	baseURL := os.Getenv("BASE_URL")
+	if baseURL == "" {
+		baseURL = fmt.Sprintf("http://localhost:%v/", port)
+	}
 
 	handlers.MapGarbanzoCollectionRoutes(baseURL, router, middleware, garbanzoService)
 	handlers.MapGarbanzoRoutes(baseURL, router, middleware, garbanzoService)
 
 	// Must be last mapping
-	handlers.MapCatchAllRoutes(router, middleware)
+	handlers.MapCatchAllRoutes(baseURL, router, middleware)
 
 	loggingHandler := gorilla_handlers.LoggingHandler(os.Stdout, router)
 
 	serverAddr := persistence.GetEnvWithDefault("SERVER_ADDR", "localhost")
-	port := persistence.GetEnvWithDefault("PORT", "8080")
 	logs.Logger.Infof("Listening on %s:%s...", serverAddr, port)
 	err = http.ListenAndServe(serverAddr+":"+port, loggingHandler)
 	if err != nil {

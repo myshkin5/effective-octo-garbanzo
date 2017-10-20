@@ -9,11 +9,11 @@ import (
 
 func MapHealthRoutes(router *mux.Router, middleware alice.Chain) {
 	methodHandler := make(MethodHandler)
-	methodHandler[http.MethodGet] = http.HandlerFunc(get)
-	router.PathPrefix("/health").Subrouter().Handle("", middleware.Then(methodHandler))
+	methodHandler[http.MethodGet] = http.HandlerFunc(getHealth)
+	router.PathPrefix("/health").Handler(middleware.Then(methodHandler))
 }
 
-func get(w http.ResponseWriter, _ *http.Request) {
+func getHealth(w http.ResponseWriter, _ *http.Request) {
 	Respond(w, http.StatusOK, JSONObject{
 		"health": "GOOD",
 	})

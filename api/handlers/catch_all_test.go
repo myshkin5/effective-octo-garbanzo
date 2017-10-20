@@ -24,13 +24,36 @@ var _ = Describe("CatchAll", func() {
 		recorder.Code = 0
 
 		router = mux.NewRouter()
-		handlers.MapCatchAllRoutes(router, alice.Chain{})
+		handlers.MapCatchAllRoutes("http://here/", router, alice.Chain{})
 	})
 
-	Describe("catch all", func() {
+	Context("happy path", func() {
 		BeforeEach(func() {
 			var err error
 			request, err = http.NewRequest(http.MethodGet, "/", nil)
+			request.RequestURI = "/"
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("returns a good root body", func() {
+			router.ServeHTTP(recorder, request)
+			Expect(recorder.Body).To(MatchJSON(`{
+				"health": "http://here/health",
+				"garbanzos": "http://here/garbanzos"
+			}`))
+		})
+
+		It("returns an ok status code", func() {
+			router.ServeHTTP(recorder, request)
+			Expect(recorder.Code).To(Equal(http.StatusOK))
+		})
+	})
+
+	Context("catch all", func() {
+		BeforeEach(func() {
+			var err error
+			request, err = http.NewRequest(http.MethodGet, "/any-thing", nil)
+			request.RequestURI = "/any-thing"
 			Expect(err).NotTo(HaveOccurred())
 		})
 
