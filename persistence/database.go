@@ -12,6 +12,8 @@ import (
 	"github.com/mattes/migrate"
 	_ "github.com/mattes/migrate/database/postgres"
 	_ "github.com/mattes/migrate/source/file"
+
+	"github.com/myshkin5/effective-octo-garbanzo/logs"
 )
 
 var (
@@ -40,6 +42,16 @@ func Open() (Database, error) {
 	return database, nil
 }
 
+type migrateLogger struct{}
+
+func (l migrateLogger) Printf(format string, v ...interface{}) {
+	logs.Logger.Infof(format, v...)
+}
+
+func (l migrateLogger) Verbose() bool {
+	return false
+}
+
 func Migrate() error {
 	sourceURL := GetEnvWithDefault("DB_SOURCE_URL", "file://./resources/ddl")
 	databaseURL := getDatabaseURL()
@@ -48,6 +60,8 @@ func Migrate() error {
 	if err != nil {
 		return err
 	}
+
+	migrator.Log = migrateLogger{}
 
 	err = migrator.Up()
 	if err != nil && err != migrate.ErrNoChange {
