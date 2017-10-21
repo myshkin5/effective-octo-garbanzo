@@ -66,8 +66,7 @@ export DB_PORT=5678
 export DB_USERNAME=garbanzo
 export DB_PASSWORD=garbanzo-secret
 
-go run persistence/migrate/main.go \
-    file://./resources/ddl postgres://$DB_USERNAME:$DB_PASSWORD@$DB_SERVER:$DB_PORT/garbanzo?sslmode=disable
+go run persistence/migrate/main.go
 
 ginkgo -r --focus="$INTEGRATION_REGEXP" $GINKGO_OPTS
 

@@ -1,31 +1,18 @@
 package main
 
 import (
-	"os"
-
-	"github.com/mattes/migrate"
-	_ "github.com/mattes/migrate/database/postgres"
-	_ "github.com/mattes/migrate/source/file"
 	"github.com/myshkin5/effective-octo-garbanzo/logs"
+	"github.com/myshkin5/effective-octo-garbanzo/persistence"
 )
 
 func main() {
-	logLevel := os.Getenv("LOG_LEVEL")
-	if logLevel == "" {
-		logLevel = "INFO"
-	}
-	err := logs.Init(logLevel)
+	err := logs.Init()
 	if err != nil {
 		panic(err)
 	}
 
-	migrator, err := migrate.New(os.Args[1], os.Args[2])
+	err = persistence.Migrate()
 	if err != nil {
-		logs.Logger.Panic(err)
-	}
-
-	err = migrator.Up()
-	if err != nil {
-		logs.Logger.Panic(err)
+		logs.Logger.Panic("Could not migrate database", err)
 	}
 }

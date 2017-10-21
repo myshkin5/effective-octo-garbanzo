@@ -9,6 +9,9 @@ import (
 	"strconv"
 
 	_ "github.com/lib/pq"
+	"github.com/mattes/migrate"
+	_ "github.com/mattes/migrate/database/postgres"
+	_ "github.com/mattes/migrate/source/file"
 )
 
 var (
@@ -22,13 +25,7 @@ type Database interface {
 }
 
 func Open() (Database, error) {
-	server := GetEnvWithDefault("DB_SERVER", "localhost")
-	port := GetEnvWithDefault("DB_PORT", "5432")
-	username := GetEnvWithDefault("DB_USERNAME", "garbanzo")
-	password := GetEnvWithDefault("DB_PASSWORD", "garbanzo-secret")
-
-	database, err := sql.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s:%s/garbanzo?sslmode=disable",
-		username, password, server, port))
+	database, err := sql.Open("postgres", getDatabaseURL())
 	if err != nil {
 		return nil, err
 	}
@@ -41,6 +38,32 @@ func Open() (Database, error) {
 	database.SetMaxOpenConns(maxOpenConns)
 
 	return database, nil
+}
+
+func Migrate() error {
+	sourceURL := GetEnvWithDefault("DB_SOURCE_URL", "file://./resources/ddl")
+	databaseURL := getDatabaseURL()
+
+	migrator, err := migrate.New(sourceURL, databaseURL)
+	if err != nil {
+		return err
+	}
+
+	err = migrator.Up()
+	if err != nil && err != migrate.ErrNoChange {
+		return err
+	}
+
+	return nil
+}
+
+func getDatabaseURL() string {
+	server := GetEnvWithDefault("DB_SERVER", "localhost")
+	port := GetEnvWithDefault("DB_PORT", "5432")
+	username := GetEnvWithDefault("DB_USERNAME", "garbanzo")
+	password := GetEnvWithDefault("DB_PASSWORD", "garbanzo-secret")
+
+	return fmt.Sprintf("postgres://%s:%s@%s:%s/garbanzo?sslmode=disable", username, password, server, port)
 }
 
 func GetEnvWithDefault(key, defaultValue string) string {

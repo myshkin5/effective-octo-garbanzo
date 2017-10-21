@@ -22,7 +22,12 @@ func init() {
 	LogLevel.SetLevel(-1, "")
 }
 
-func Init(logLevel string) error {
+func Init() error {
+	logLevel := os.Getenv("LOG_LEVEL")
+	if logLevel == "" {
+		logLevel = "INFO"
+	}
+
 	level, err := logging.LogLevel(logLevel)
 	if err != nil {
 		return err

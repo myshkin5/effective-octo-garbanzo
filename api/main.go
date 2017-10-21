@@ -1,14 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 
 	gorilla_handlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/justinas/alice"
-
-	"fmt"
 
 	"github.com/myshkin5/effective-octo-garbanzo/api/handlers"
 	"github.com/myshkin5/effective-octo-garbanzo/api/handlers/middleware"
@@ -18,31 +17,51 @@ import (
 )
 
 func main() {
-	logLevel := os.Getenv("LOG_LEVEL")
-	if logLevel == "" {
-		logLevel = "INFO"
-	}
-	err := logs.Init(logLevel)
+	initLogging()
+
+	database := initDatabase()
+
+	garbanzoService := services.NewGarbanzoService(persistence.GarbanzoStore{}, database)
+
+	port := persistence.GetEnvWithDefault("PORT", "8080")
+	router := initRoutes(port, garbanzoService)
+
+	listenAndServe(port, router)
+}
+
+func initLogging() {
+	err := logs.Init()
 	if err != nil {
 		panic(err)
 	}
+}
 
+func initDatabase() persistence.Database {
 	database, err := persistence.Open()
 	if err != nil {
 		logs.Logger.Panic("Could not open database", err)
 	}
 
-	garbanzoService := services.NewGarbanzoService(persistence.GarbanzoStore{}, database)
+	err = persistence.Migrate()
+	if err != nil {
+		logs.Logger.Panic("Could not migrate database", err)
+	}
 
+	return database
+}
+
+func initRoutes(port string, garbanzoService *services.GarbanzoService) *mux.Router {
 	router := mux.NewRouter()
 
+	loggingHandler := func(handler http.Handler) http.Handler {
+		return gorilla_handlers.LoggingHandler(os.Stdout, handler)
+	}
 	headersHandler := middleware.StandardHeadersHandler
 
-	middleware := alice.New(headersHandler)
+	middleware := alice.New(loggingHandler, headersHandler)
 
 	handlers.MapHealthRoutes(router, middleware)
 
-	port := persistence.GetEnvWithDefault("PORT", "8080")
 	baseURL := os.Getenv("BASE_URL")
 	if baseURL == "" {
 		baseURL = fmt.Sprintf("http://localhost:%v/", port)
@@ -54,11 +73,13 @@ func main() {
 	// Must be last mapping
 	handlers.MapCatchAllRoutes(baseURL, router, middleware)
 
-	loggingHandler := gorilla_handlers.LoggingHandler(os.Stdout, router)
+	return router
+}
 
+func listenAndServe(port string, router *mux.Router) {
 	serverAddr := persistence.GetEnvWithDefault("SERVER_ADDR", "localhost")
 	logs.Logger.Infof("Listening on %s:%s...", serverAddr, port)
-	err = http.ListenAndServe(serverAddr+":"+port, loggingHandler)
+	err := http.ListenAndServe(serverAddr+":"+port, router)
 	if err != nil {
 		logs.Logger.Critical("ListenAndServe:", err)
 	}
