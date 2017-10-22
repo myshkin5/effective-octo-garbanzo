@@ -33,10 +33,11 @@ var _ = Describe("CatchAll", func() {
 			request, err = http.NewRequest(http.MethodGet, "/", nil)
 			request.RequestURI = "/"
 			Expect(err).NotTo(HaveOccurred())
+
+			router.ServeHTTP(recorder, request)
 		})
 
 		It("returns a good root body", func() {
-			router.ServeHTTP(recorder, request)
 			Expect(recorder.Body).To(MatchJSON(`{
 				"health": "http://here/health",
 				"garbanzos": "http://here/garbanzos"
@@ -44,7 +45,6 @@ var _ = Describe("CatchAll", func() {
 		})
 
 		It("returns an ok status code", func() {
-			router.ServeHTTP(recorder, request)
 			Expect(recorder.Code).To(Equal(http.StatusOK))
 		})
 	})
@@ -55,10 +55,11 @@ var _ = Describe("CatchAll", func() {
 			request, err = http.NewRequest(http.MethodGet, "/any-thing", nil)
 			request.RequestURI = "/any-thing"
 			Expect(err).NotTo(HaveOccurred())
+
+			router.ServeHTTP(recorder, request)
 		})
 
 		It("returns an error body", func() {
-			router.ServeHTTP(recorder, request)
 			Expect(recorder.Body).To(MatchJSON(`{
 				"code": 404,
 				"error": "Not Found",
@@ -67,7 +68,6 @@ var _ = Describe("CatchAll", func() {
 		})
 
 		It("returns a not found code", func() {
-			router.ServeHTTP(recorder, request)
 			Expect(recorder.Code).To(Equal(http.StatusNotFound))
 		})
 	})

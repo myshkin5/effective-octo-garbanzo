@@ -51,7 +51,7 @@ var _ = Describe("Garbanzo", func() {
 
 	It("fetches a garbanzo by API UUID", func() {
 		garbanzo := persistence.Garbanzo{
-			FirstName: "Mike",
+			GarbanzoType: persistence.DESI,
 		}
 		mockStore.FetchGarbanzoByAPIUUIDOutput.Garbanzo <- garbanzo
 		err := errors.New("some error")
@@ -82,7 +82,7 @@ var _ = Describe("Garbanzo", func() {
 		mockStore.CreateGarbanzoOutput.Err <- nil
 		ctx := context.TODO()
 		garbanzo := persistence.Garbanzo{
-			FirstName: "joe",
+			GarbanzoType: persistence.DESI,
 		}
 
 		actualGarbanzo, actualErr := service.CreateGarbanzo(ctx, garbanzo)
@@ -90,7 +90,7 @@ var _ = Describe("Garbanzo", func() {
 		Expect(actualGarbanzo.Id).To(Equal(garbanzoId))
 		Expect(actualErr).To(BeNil())
 		Expect(actualGarbanzo.APIUUID).NotTo(Equal(uuid.UUID{}))
-		Expect(actualGarbanzo.FirstName).To(Equal("joe"))
+		Expect(actualGarbanzo.GarbanzoType).To(Equal(persistence.DESI))
 
 		Expect(mockStore.CreateGarbanzoCalled).To(HaveLen(1))
 		var actualDB persistence.Database
@@ -102,7 +102,7 @@ var _ = Describe("Garbanzo", func() {
 		var persistedGarbanzo persistence.Garbanzo
 		Expect(mockStore.CreateGarbanzoInput.Garbanzo).To(Receive(&persistedGarbanzo))
 		Expect(persistedGarbanzo.APIUUID).To(Equal(actualGarbanzo.APIUUID))
-		Expect(persistedGarbanzo.FirstName).To(Equal(garbanzo.FirstName))
+		Expect(persistedGarbanzo.GarbanzoType).To(Equal(garbanzo.GarbanzoType))
 	})
 
 	It("deletes a garbanzo by API UUID", func() {

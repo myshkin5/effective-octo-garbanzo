@@ -46,26 +46,26 @@ var _ = Describe("Garbanzo", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				mockService.FetchGarbanzoByAPIUUIDOutput.Garbanzo <- persistence.Garbanzo{
-					APIUUID:   apiUUID,
-					FirstName: "Joe",
-					LastName:  "Schmoe",
+					APIUUID:      apiUUID,
+					GarbanzoType: persistence.DESI,
+					DiameterMM:   4.2,
 				}
 				mockService.FetchGarbanzoByAPIUUIDOutput.Err <- nil
+
+				router.ServeHTTP(recorder, request)
 			})
 
 			It("returns an ok status code", func() {
-				router.ServeHTTP(recorder, request)
 				Expect(recorder.Code).To(Equal(http.StatusOK))
 			})
 
 			It("returns the garbanzo in the body", func() {
-				router.ServeHTTP(recorder, request)
 				Expect(recorder.Body).To(MatchJSON(fmt.Sprintf(`{
 					"data": {
 						"garbanzo": {
-							"link": "http://here/garbanzos/%s",
-							"first-name": "Joe",
-							"last-name": "Schmoe"
+							"link":        "http://here/garbanzos/%s",
+							"type":        "DESI",
+							"diameter-mm": 4.2
 						}
 					}
 				}`, apiUUID)))
@@ -78,15 +78,15 @@ var _ = Describe("Garbanzo", func() {
 					var err error
 					request, err = http.NewRequest(http.MethodGet, "/garbanzos/not-a-uuid", nil)
 					Expect(err).NotTo(HaveOccurred())
+
+					router.ServeHTTP(recorder, request)
 				})
 
 				It("returns a bad request status code", func() {
-					router.ServeHTTP(recorder, request)
 					Expect(recorder.Code).To(Equal(http.StatusBadRequest))
 				})
 
 				It("returns a JSON error", func() {
-					router.ServeHTTP(recorder, request)
 					Expect(recorder.Body).To(MatchJSON(`{
 						"code": 400,
 						"error": "Invalid UUID",
@@ -103,15 +103,15 @@ var _ = Describe("Garbanzo", func() {
 
 					mockService.FetchGarbanzoByAPIUUIDOutput.Garbanzo <- persistence.Garbanzo{}
 					mockService.FetchGarbanzoByAPIUUIDOutput.Err <- errors.New("bad stuff")
+
+					router.ServeHTTP(recorder, request)
 				})
 
 				It("returns an internal server error status code", func() {
-					router.ServeHTTP(recorder, request)
 					Expect(recorder.Code).To(Equal(http.StatusInternalServerError))
 				})
 
 				It("returns a JSON error", func() {
-					router.ServeHTTP(recorder, request)
 					Expect(recorder.Body).To(MatchJSON(`{
 						"code": 500,
 						"error": "Error fetching garbanzo",
@@ -128,15 +128,15 @@ var _ = Describe("Garbanzo", func() {
 
 					mockService.FetchGarbanzoByAPIUUIDOutput.Garbanzo <- persistence.Garbanzo{}
 					mockService.FetchGarbanzoByAPIUUIDOutput.Err <- persistence.ErrNotFound
+
+					router.ServeHTTP(recorder, request)
 				})
 
 				It("returns a not found status code", func() {
-					router.ServeHTTP(recorder, request)
 					Expect(recorder.Code).To(Equal(http.StatusNotFound))
 				})
 
 				It("returns a JSON error", func() {
-					router.ServeHTTP(recorder, request)
 					Expect(recorder.Body).To(MatchJSON(fmt.Sprintf(`{
 						"code": 404,
 						"error": "Garbanzo %s not found",
@@ -155,15 +155,15 @@ var _ = Describe("Garbanzo", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				mockService.DeleteGarbanzoByAPIUUIDOutput.Err <- nil
+
+				router.ServeHTTP(recorder, request)
 			})
 
 			It("returns a no content status code", func() {
-				router.ServeHTTP(recorder, request)
 				Expect(recorder.Code).To(Equal(http.StatusNoContent))
 			})
 
 			It("returns no content", func() {
-				router.ServeHTTP(recorder, request)
 				Expect(recorder.Body.Len()).To(BeZero())
 			})
 		})
@@ -174,15 +174,15 @@ var _ = Describe("Garbanzo", func() {
 					var err error
 					request, err = http.NewRequest(http.MethodDelete, "/garbanzos/not-a-uuid", nil)
 					Expect(err).NotTo(HaveOccurred())
+
+					router.ServeHTTP(recorder, request)
 				})
 
 				It("returns a bad request status code", func() {
-					router.ServeHTTP(recorder, request)
 					Expect(recorder.Code).To(Equal(http.StatusBadRequest))
 				})
 
 				It("returns a JSON error", func() {
-					router.ServeHTTP(recorder, request)
 					Expect(recorder.Body).To(MatchJSON(`{
 						"code": 400,
 						"error": "Invalid UUID",
@@ -198,15 +198,15 @@ var _ = Describe("Garbanzo", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					mockService.DeleteGarbanzoByAPIUUIDOutput.Err <- errors.New("bad stuff")
+
+					router.ServeHTTP(recorder, request)
 				})
 
 				It("returns an internal server error status code", func() {
-					router.ServeHTTP(recorder, request)
 					Expect(recorder.Code).To(Equal(http.StatusInternalServerError))
 				})
 
 				It("returns a JSON error", func() {
-					router.ServeHTTP(recorder, request)
 					Expect(recorder.Body).To(MatchJSON(`{
 						"code": 500,
 						"error": "Error fetching garbanzo",
@@ -222,15 +222,15 @@ var _ = Describe("Garbanzo", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					mockService.DeleteGarbanzoByAPIUUIDOutput.Err <- persistence.ErrNotFound
+
+					router.ServeHTTP(recorder, request)
 				})
 
 				It("returns a not found status code", func() {
-					router.ServeHTTP(recorder, request)
 					Expect(recorder.Code).To(Equal(http.StatusNotFound))
 				})
 
 				It("returns a JSON error", func() {
-					router.ServeHTTP(recorder, request)
 					Expect(recorder.Body).To(MatchJSON(fmt.Sprintf(`{
 						"code": 404,
 						"error": "Garbanzo %s not found",

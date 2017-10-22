@@ -32,17 +32,17 @@ var _ = Describe("Health", func() {
 			var err error
 			request, err = http.NewRequest(http.MethodGet, "/health", nil)
 			Expect(err).NotTo(HaveOccurred())
+
+			router.ServeHTTP(recorder, request)
 		})
 
 		It("returns a good health body", func() {
-			router.ServeHTTP(recorder, request)
 			Expect(recorder.Body).To(MatchJSON(`{
 				"health": "GOOD"
 			}`))
 		})
 
 		It("returns an ok status code", func() {
-			router.ServeHTTP(recorder, request)
 			Expect(recorder.Code).To(Equal(http.StatusOK))
 		})
 	})

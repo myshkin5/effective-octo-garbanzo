@@ -44,15 +44,15 @@ var _ = Describe("GarbanzoCollection", func() {
 
 				mockService.FetchAllGarbanzosOutput.Garbanzos <- []persistence.Garbanzo{}
 				mockService.FetchAllGarbanzosOutput.Err <- nil
+
+				router.ServeHTTP(recorder, request)
 			})
 
 			It("returns an ok status code", func() {
-				router.ServeHTTP(recorder, request)
 				Expect(recorder.Code).To(Equal(http.StatusOK))
 			})
 
 			It("returns an empty list in the body", func() {
-				router.ServeHTTP(recorder, request)
 				Expect(recorder.Body).To(MatchJSON(`{
 					"data": {
 						"garbanzos": []
@@ -77,38 +77,38 @@ var _ = Describe("GarbanzoCollection", func() {
 
 				mockService.FetchAllGarbanzosOutput.Garbanzos <- []persistence.Garbanzo{
 					{
-						APIUUID:   apiUUID1,
-						FirstName: "Joe",
-						LastName:  "Schmoe",
+						APIUUID:      apiUUID1,
+						GarbanzoType: persistence.DESI,
+						DiameterMM:   4.2,
 					},
 					{
-						APIUUID:   apiUUID2,
-						FirstName: "Marty",
-						LastName:  "Blarty",
+						APIUUID:      apiUUID2,
+						GarbanzoType: persistence.KABULI,
+						DiameterMM:   6.4,
 					},
 				}
 				mockService.FetchAllGarbanzosOutput.Err <- nil
+
+				router.ServeHTTP(recorder, request)
 			})
 
 			It("returns an ok status code", func() {
-				router.ServeHTTP(recorder, request)
 				Expect(recorder.Code).To(Equal(http.StatusOK))
 			})
 
 			It("returns all garbanzos in the body", func() {
-				router.ServeHTTP(recorder, request)
 				Expect(recorder.Body).To(MatchJSON(fmt.Sprintf(`{
 					"data": {
 						"garbanzos": [
 							{
-								"link": "http://here/garbanzos/%s",
-								"first-name": "Joe",
-								"last-name": "Schmoe"
+								"link":        "http://here/garbanzos/%s",
+								"type":        "DESI",
+								"diameter-mm": 4.2
 							},
 							{
-								"link": "http://here/garbanzos/%s",
-								"first-name": "Marty",
-								"last-name": "Blarty"
+								"link":        "http://here/garbanzos/%s",
+								"type":        "KABULI",
+								"diameter-mm": 6.4
 							}
 						]
 					}
@@ -124,15 +124,15 @@ var _ = Describe("GarbanzoCollection", func() {
 
 				mockService.FetchAllGarbanzosOutput.Garbanzos <- nil
 				mockService.FetchAllGarbanzosOutput.Err <- errors.New("bad stuff")
+
+				router.ServeHTTP(recorder, request)
 			})
 
 			It("returns an internal server error status code", func() {
-				router.ServeHTTP(recorder, request)
 				Expect(recorder.Code).To(Equal(http.StatusInternalServerError))
 			})
 
 			It("returns a JSON error", func() {
-				router.ServeHTTP(recorder, request)
 				Expect(recorder.Body).To(MatchJSON(`{
 					"code": 500,
 					"error": "Error fetching all garbanzos",
@@ -151,9 +151,9 @@ var _ = Describe("GarbanzoCollection", func() {
 			BeforeEach(func() {
 				var err error
 				body := strings.NewReader(`{
-					"first-name": "Joe",
-					"last-name":  "Schmoe",
-					"something":  "ignored"
+					"type":        "DESI",
+					"diameter-mm": 4.2,
+					"something":   "ignored"
 				}`)
 				request, err = http.NewRequest(http.MethodPost, "/garbanzos", body)
 				Expect(err).NotTo(HaveOccurred())
@@ -161,27 +161,36 @@ var _ = Describe("GarbanzoCollection", func() {
 				apiUUID = uuid.NewV4()
 
 				mockService.CreateGarbanzoOutput.GarbanzoOut <- persistence.Garbanzo{
-					Id:        234,
-					APIUUID:   apiUUID,
-					FirstName: "Joe",
-					LastName:  "Schmoe",
+					Id:           234,
+					APIUUID:      apiUUID,
+					GarbanzoType: persistence.DESI,
+					DiameterMM:   4.2,
 				}
 				mockService.CreateGarbanzoOutput.Err <- nil
+
+				router.ServeHTTP(recorder, request)
+			})
+
+			It("creates the garbanzo via the service", func() {
+				var garbanzo persistence.Garbanzo
+				Expect(mockService.CreateGarbanzoInput.GarbanzoIn).To(Receive(&garbanzo))
+				Expect(garbanzo).To(Equal(persistence.Garbanzo{
+					GarbanzoType: persistence.DESI,
+					DiameterMM:   4.2,
+				}))
 			})
 
 			It("returns an ok status code", func() {
-				router.ServeHTTP(recorder, request)
 				Expect(recorder.Code).To(Equal(http.StatusCreated))
 			})
 
 			It("returns the newly created garbanzo in the body", func() {
-				router.ServeHTTP(recorder, request)
 				Expect(recorder.Body).To(MatchJSON(fmt.Sprintf(`{
 					"data": {
 						"garbanzo": {
-							"link": "http://here/garbanzos/%s",
-							"first-name": "Joe",
-							"last-name": "Schmoe"
+							"link":        "http://here/garbanzos/%s",
+							"type":        "DESI",
+							"diameter-mm": 4.2
 						}
 					}
 				}`, apiUUID)))
@@ -195,15 +204,15 @@ var _ = Describe("GarbanzoCollection", func() {
 					body := strings.NewReader("not json")
 					request, err = http.NewRequest(http.MethodPost, "/garbanzos", body)
 					Expect(err).NotTo(HaveOccurred())
+
+					router.ServeHTTP(recorder, request)
 				})
 
 				It("returns an internal server error status code", func() {
-					router.ServeHTTP(recorder, request)
 					Expect(recorder.Code).To(Equal(http.StatusBadRequest))
 				})
 
 				It("returns a JSON error", func() {
-					router.ServeHTTP(recorder, request)
 					Expect(recorder.Body).To(MatchJSON(`{
 						"code": 400,
 						"error": "Body of request was not valid JSON",
@@ -215,21 +224,24 @@ var _ = Describe("GarbanzoCollection", func() {
 			Context("persistence error", func() {
 				BeforeEach(func() {
 					var err error
-					body := strings.NewReader("{}")
+					body := strings.NewReader(`{
+						"type":        "DESI",
+						"diameter-mm": 4.2
+					}`)
 					request, err = http.NewRequest(http.MethodPost, "/garbanzos", body)
 					Expect(err).NotTo(HaveOccurred())
 
 					mockService.CreateGarbanzoOutput.GarbanzoOut <- persistence.Garbanzo{}
 					mockService.CreateGarbanzoOutput.Err <- errors.New("not good")
+
+					router.ServeHTTP(recorder, request)
 				})
 
 				It("returns an internal server error status code", func() {
-					router.ServeHTTP(recorder, request)
 					Expect(recorder.Code).To(Equal(http.StatusInternalServerError))
 				})
 
 				It("returns a JSON error", func() {
-					router.ServeHTTP(recorder, request)
 					Expect(recorder.Body).To(MatchJSON(`{
 						"code": 500,
 						"error": "Error creating new garbanzo",

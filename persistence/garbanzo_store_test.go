@@ -39,20 +39,16 @@ var _ = Describe("GarbanzoStore Integration", func() {
 
 		It("fetches all the garbanzos", func() {
 			apiUUID1 := uuid.NewV4()
-			firstName1 := "Joe"
-			lastName1 := "Schmoe"
 			garbanzo1 := persistence.Garbanzo{
-				APIUUID:   apiUUID1,
-				FirstName: firstName1,
-				LastName:  lastName1,
+				APIUUID:      apiUUID1,
+				GarbanzoType: persistence.DESI,
+				DiameterMM:   4.2,
 			}
 			apiUUID2 := uuid.NewV4()
-			firstName2 := "Marty"
-			lastName2 := "Blarty"
 			garbanzo2 := persistence.Garbanzo{
-				APIUUID:   apiUUID2,
-				FirstName: firstName2,
-				LastName:  lastName2,
+				APIUUID:      apiUUID2,
+				GarbanzoType: persistence.KABULI,
+				DiameterMM:   6.4,
 			}
 
 			garbanzoId1, err := store.CreateGarbanzo(ctx, database, garbanzo1)
@@ -67,13 +63,13 @@ var _ = Describe("GarbanzoStore Integration", func() {
 
 			Expect(garbanzos[0].Id).To(Equal(garbanzoId1))
 			Expect(garbanzos[0].APIUUID).To(Equal(apiUUID1))
-			Expect(garbanzos[0].FirstName).To(Equal(firstName1))
-			Expect(garbanzos[0].LastName).To(Equal(lastName1))
+			Expect(garbanzos[0].GarbanzoType).To(Equal(persistence.DESI))
+			Expect(garbanzos[0].DiameterMM).To(BeNumerically("~", 4.2, 0.000001))
 
 			Expect(garbanzos[1].Id).To(Equal(garbanzoId2))
 			Expect(garbanzos[1].APIUUID).To(Equal(apiUUID2))
-			Expect(garbanzos[1].FirstName).To(Equal(firstName2))
-			Expect(garbanzos[1].LastName).To(Equal(lastName2))
+			Expect(garbanzos[1].GarbanzoType).To(Equal(persistence.KABULI))
+			Expect(garbanzos[1].DiameterMM).To(BeNumerically("~", 6.4, 0.000001))
 		})
 	})
 
@@ -86,12 +82,10 @@ var _ = Describe("GarbanzoStore Integration", func() {
 
 		It("fetches a garbanzo", func() {
 			apiUUID := uuid.NewV4()
-			firstName := "Joe"
-			lastName := "Schmoe"
 			garbanzo := persistence.Garbanzo{
-				APIUUID:   apiUUID,
-				FirstName: firstName,
-				LastName:  lastName,
+				APIUUID:      apiUUID,
+				GarbanzoType: persistence.DESI,
+				DiameterMM:   4.2,
 			}
 
 			garbanzoId, err := store.CreateGarbanzo(ctx, database, garbanzo)
@@ -101,20 +95,18 @@ var _ = Describe("GarbanzoStore Integration", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fetchedGarbanzo.Id).To(Equal(garbanzoId))
 			Expect(fetchedGarbanzo.APIUUID).To(Equal(apiUUID))
-			Expect(fetchedGarbanzo.FirstName).To(Equal(firstName))
-			Expect(fetchedGarbanzo.LastName).To(Equal(lastName))
+			Expect(fetchedGarbanzo.GarbanzoType).To(Equal(persistence.DESI))
+			Expect(fetchedGarbanzo.DiameterMM).To(BeNumerically("~", 4.2, 0.000001))
 		})
 	})
 
 	Context("CreateGarbanzo", func() {
 		It("creates a new garbanzo", func() {
 			apiUUID := uuid.NewV4()
-			firstName := "Joe"
-			lastName := "Schmoe"
 			garbanzo := persistence.Garbanzo{
-				APIUUID:   apiUUID,
-				FirstName: firstName,
-				LastName:  lastName,
+				APIUUID:      apiUUID,
+				GarbanzoType: persistence.DESI,
+				DiameterMM:   4.2,
 			}
 
 			garbanzoId, err := store.CreateGarbanzo(ctx, database, garbanzo)
@@ -124,17 +116,17 @@ var _ = Describe("GarbanzoStore Integration", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fetchedGarbanzo.Id).To(Equal(garbanzoId))
 			Expect(fetchedGarbanzo.APIUUID).To(Equal(apiUUID))
-			Expect(fetchedGarbanzo.FirstName).To(Equal(firstName))
-			Expect(fetchedGarbanzo.LastName).To(Equal(lastName))
+			Expect(fetchedGarbanzo.GarbanzoType).To(Equal(persistence.DESI))
+			Expect(fetchedGarbanzo.DiameterMM).To(BeNumerically("~", 4.2, 0.000001))
 		})
 
 		It("ignores the supplied id on create", func() {
 			ignoredId := 82475928
 			garbanzo := persistence.Garbanzo{
-				Id:        ignoredId,
-				APIUUID:   uuid.NewV4(),
-				FirstName: "Joe",
-				LastName:  "Schmoe",
+				Id:           ignoredId,
+				APIUUID:      uuid.NewV4(),
+				GarbanzoType: persistence.DESI,
+				DiameterMM:   4.2,
 			}
 
 			garbanzoId, err := store.CreateGarbanzo(ctx, database, garbanzo)
@@ -153,9 +145,9 @@ var _ = Describe("GarbanzoStore Integration", func() {
 		It("deletes a garbanzo", func() {
 			apiUUID := uuid.NewV4()
 			garbanzo := persistence.Garbanzo{
-				APIUUID:   apiUUID,
-				FirstName: "Joe",
-				LastName:  "Schmoe",
+				APIUUID:      apiUUID,
+				GarbanzoType: persistence.DESI,
+				DiameterMM:   4.2,
 			}
 
 			_, err := store.CreateGarbanzo(ctx, database, garbanzo)

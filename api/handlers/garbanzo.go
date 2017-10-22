@@ -13,9 +13,9 @@ import (
 )
 
 type Garbanzo struct {
-	Link      string `json:"link"`
-	FirstName string `json:"first-name"`
-	LastName  string `json:"last-name"`
+	Link         string  `json:"link"`
+	GarbanzoType string  `json:"type"`
+	DiameterMM   float32 `json:"diameter-mm"`
 }
 
 type GarbanzoService interface {
@@ -87,8 +87,8 @@ func (g *garbanzo) delete(w http.ResponseWriter, req *http.Request) {
 
 func fromPersistence(garbanzo persistence.Garbanzo, baseURL string) Garbanzo {
 	return Garbanzo{
-		Link:      baseURL + garbanzo.APIUUID.String(),
-		FirstName: garbanzo.FirstName,
-		LastName:  garbanzo.LastName,
+		Link:         baseURL + garbanzo.APIUUID.String(),
+		GarbanzoType: garbanzo.GarbanzoType.String(),
+		DiameterMM:   garbanzo.DiameterMM,
 	}
 }

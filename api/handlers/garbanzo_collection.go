@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -53,9 +54,15 @@ func (g *garbanzoCollection) post(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	garbanzoType, err := persistence.GarbanzoTypeFromString(dto.GarbanzoType)
+	if err != nil {
+		Error(w, fmt.Sprintf("Unknown garbanzo type: %s", dto.GarbanzoType), http.StatusBadRequest, err)
+		return
+	}
+
 	garbanzo, err := g.garbanzoService.CreateGarbanzo(req.Context(), persistence.Garbanzo{
-		FirstName: dto.FirstName,
-		LastName:  dto.LastName,
+		GarbanzoType: garbanzoType,
+		DiameterMM:   dto.DiameterMM,
 	})
 	if err != nil {
 		// TODO: Separate bad request issues from internal errors

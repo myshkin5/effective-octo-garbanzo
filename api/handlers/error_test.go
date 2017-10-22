@@ -18,11 +18,11 @@ var _ = Describe("Error", func() {
 	BeforeEach(func() {
 		recorder = httptest.NewRecorder()
 		recorder.Code = 0
+
+		handlers.Error(recorder, "bad stuff!", http.StatusInternalServerError)
 	})
 
 	It("writes the error to a JSON body", func() {
-		handlers.Error(recorder, "bad stuff!", http.StatusInternalServerError)
-
 		Expect(recorder.Body).To(MatchJSON(`{
 			"code":   500,
 			"error":  "bad stuff!",
