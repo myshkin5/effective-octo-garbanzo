@@ -3,14 +3,16 @@ package services
 import (
 	"context"
 
-	"github.com/myshkin5/effective-octo-garbanzo/persistence"
 	"github.com/satori/go.uuid"
+
+	"github.com/myshkin5/effective-octo-garbanzo/persistence"
+	"github.com/myshkin5/effective-octo-garbanzo/persistence/data"
 )
 
 type GarbanzoStore interface {
-	FetchAllGarbanzos(ctx context.Context, database persistence.Database) (garbanzos []persistence.Garbanzo, err error)
-	FetchGarbanzoByAPIUUID(ctx context.Context, database persistence.Database, apiUUID uuid.UUID) (garbanzo persistence.Garbanzo, err error)
-	CreateGarbanzo(ctx context.Context, database persistence.Database, garbanzo persistence.Garbanzo) (garbanzoId int, err error)
+	FetchAllGarbanzos(ctx context.Context, database persistence.Database) (garbanzos []data.Garbanzo, err error)
+	FetchGarbanzoByAPIUUID(ctx context.Context, database persistence.Database, apiUUID uuid.UUID) (garbanzo data.Garbanzo, err error)
+	CreateGarbanzo(ctx context.Context, database persistence.Database, garbanzo data.Garbanzo) (garbanzoId int, err error)
 	DeleteGarbanzoByAPIUUID(ctx context.Context, database persistence.Database, apiUUID uuid.UUID) (err error)
 }
 
@@ -26,21 +28,21 @@ func NewGarbanzoService(store GarbanzoStore, database persistence.Database) *Gar
 	}
 }
 
-func (s *GarbanzoService) FetchAllGarbanzos(ctx context.Context) ([]persistence.Garbanzo, error) {
+func (s *GarbanzoService) FetchAllGarbanzos(ctx context.Context) ([]data.Garbanzo, error) {
 	return s.store.FetchAllGarbanzos(ctx, s.database)
 }
 
-func (s *GarbanzoService) FetchGarbanzoByAPIUUID(ctx context.Context, apiUUID uuid.UUID) (persistence.Garbanzo, error) {
+func (s *GarbanzoService) FetchGarbanzoByAPIUUID(ctx context.Context, apiUUID uuid.UUID) (data.Garbanzo, error) {
 	return s.store.FetchGarbanzoByAPIUUID(ctx, s.database, apiUUID)
 }
 
-func (s *GarbanzoService) CreateGarbanzo(ctx context.Context, garbanzo persistence.Garbanzo) (persistence.Garbanzo, error) {
+func (s *GarbanzoService) CreateGarbanzo(ctx context.Context, garbanzo data.Garbanzo) (data.Garbanzo, error) {
 	garbanzo.APIUUID = uuid.NewV4()
 
 	var err error
 	garbanzo.Id, err = s.store.CreateGarbanzo(ctx, s.database, garbanzo)
 	if err != nil {
-		return persistence.Garbanzo{}, err
+		return data.Garbanzo{}, err
 	}
 
 	return garbanzo, nil

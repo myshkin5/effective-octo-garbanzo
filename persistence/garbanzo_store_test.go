@@ -6,8 +6,10 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/myshkin5/effective-octo-garbanzo/persistence"
 	"github.com/satori/go.uuid"
+
+	"github.com/myshkin5/effective-octo-garbanzo/persistence"
+	"github.com/myshkin5/effective-octo-garbanzo/persistence/data"
 )
 
 var _ = Describe("GarbanzoStore Integration", func() {
@@ -39,15 +41,15 @@ var _ = Describe("GarbanzoStore Integration", func() {
 
 		It("fetches all the garbanzos", func() {
 			apiUUID1 := uuid.NewV4()
-			garbanzo1 := persistence.Garbanzo{
+			garbanzo1 := data.Garbanzo{
 				APIUUID:      apiUUID1,
-				GarbanzoType: persistence.DESI,
+				GarbanzoType: data.DESI,
 				DiameterMM:   4.2,
 			}
 			apiUUID2 := uuid.NewV4()
-			garbanzo2 := persistence.Garbanzo{
+			garbanzo2 := data.Garbanzo{
 				APIUUID:      apiUUID2,
-				GarbanzoType: persistence.KABULI,
+				GarbanzoType: data.KABULI,
 				DiameterMM:   6.4,
 			}
 
@@ -63,12 +65,12 @@ var _ = Describe("GarbanzoStore Integration", func() {
 
 			Expect(garbanzos[0].Id).To(Equal(garbanzoId1))
 			Expect(garbanzos[0].APIUUID).To(Equal(apiUUID1))
-			Expect(garbanzos[0].GarbanzoType).To(Equal(persistence.DESI))
+			Expect(garbanzos[0].GarbanzoType).To(Equal(data.DESI))
 			Expect(garbanzos[0].DiameterMM).To(BeNumerically("~", 4.2, 0.000001))
 
 			Expect(garbanzos[1].Id).To(Equal(garbanzoId2))
 			Expect(garbanzos[1].APIUUID).To(Equal(apiUUID2))
-			Expect(garbanzos[1].GarbanzoType).To(Equal(persistence.KABULI))
+			Expect(garbanzos[1].GarbanzoType).To(Equal(data.KABULI))
 			Expect(garbanzos[1].DiameterMM).To(BeNumerically("~", 6.4, 0.000001))
 		})
 	})
@@ -82,9 +84,9 @@ var _ = Describe("GarbanzoStore Integration", func() {
 
 		It("fetches a garbanzo", func() {
 			apiUUID := uuid.NewV4()
-			garbanzo := persistence.Garbanzo{
+			garbanzo := data.Garbanzo{
 				APIUUID:      apiUUID,
-				GarbanzoType: persistence.DESI,
+				GarbanzoType: data.DESI,
 				DiameterMM:   4.2,
 			}
 
@@ -95,7 +97,7 @@ var _ = Describe("GarbanzoStore Integration", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fetchedGarbanzo.Id).To(Equal(garbanzoId))
 			Expect(fetchedGarbanzo.APIUUID).To(Equal(apiUUID))
-			Expect(fetchedGarbanzo.GarbanzoType).To(Equal(persistence.DESI))
+			Expect(fetchedGarbanzo.GarbanzoType).To(Equal(data.DESI))
 			Expect(fetchedGarbanzo.DiameterMM).To(BeNumerically("~", 4.2, 0.000001))
 		})
 	})
@@ -103,9 +105,9 @@ var _ = Describe("GarbanzoStore Integration", func() {
 	Context("CreateGarbanzo", func() {
 		It("creates a new garbanzo", func() {
 			apiUUID := uuid.NewV4()
-			garbanzo := persistence.Garbanzo{
+			garbanzo := data.Garbanzo{
 				APIUUID:      apiUUID,
-				GarbanzoType: persistence.DESI,
+				GarbanzoType: data.DESI,
 				DiameterMM:   4.2,
 			}
 
@@ -116,16 +118,16 @@ var _ = Describe("GarbanzoStore Integration", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fetchedGarbanzo.Id).To(Equal(garbanzoId))
 			Expect(fetchedGarbanzo.APIUUID).To(Equal(apiUUID))
-			Expect(fetchedGarbanzo.GarbanzoType).To(Equal(persistence.DESI))
+			Expect(fetchedGarbanzo.GarbanzoType).To(Equal(data.DESI))
 			Expect(fetchedGarbanzo.DiameterMM).To(BeNumerically("~", 4.2, 0.000001))
 		})
 
 		It("ignores the supplied id on create", func() {
 			ignoredId := 82475928
-			garbanzo := persistence.Garbanzo{
+			garbanzo := data.Garbanzo{
 				Id:           ignoredId,
 				APIUUID:      uuid.NewV4(),
-				GarbanzoType: persistence.DESI,
+				GarbanzoType: data.DESI,
 				DiameterMM:   4.2,
 			}
 
@@ -144,9 +146,9 @@ var _ = Describe("GarbanzoStore Integration", func() {
 
 		It("deletes a garbanzo", func() {
 			apiUUID := uuid.NewV4()
-			garbanzo := persistence.Garbanzo{
+			garbanzo := data.Garbanzo{
 				APIUUID:      apiUUID,
-				GarbanzoType: persistence.DESI,
+				GarbanzoType: data.DESI,
 				DiameterMM:   4.2,
 			}
 

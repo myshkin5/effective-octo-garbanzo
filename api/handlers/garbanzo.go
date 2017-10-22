@@ -10,6 +10,7 @@ import (
 	"github.com/satori/go.uuid"
 
 	"github.com/myshkin5/effective-octo-garbanzo/persistence"
+	"github.com/myshkin5/effective-octo-garbanzo/persistence/data"
 )
 
 type Garbanzo struct {
@@ -19,9 +20,9 @@ type Garbanzo struct {
 }
 
 type GarbanzoService interface {
-	FetchAllGarbanzos(ctx context.Context) (garbanzos []persistence.Garbanzo, err error)
-	FetchGarbanzoByAPIUUID(ctx context.Context, apiUUID uuid.UUID) (garbanzo persistence.Garbanzo, err error)
-	CreateGarbanzo(ctx context.Context, garbanzoIn persistence.Garbanzo) (garbanzoOut persistence.Garbanzo, err error)
+	FetchAllGarbanzos(ctx context.Context) (garbanzos []data.Garbanzo, err error)
+	FetchGarbanzoByAPIUUID(ctx context.Context, apiUUID uuid.UUID) (garbanzo data.Garbanzo, err error)
+	CreateGarbanzo(ctx context.Context, garbanzoIn data.Garbanzo) (garbanzoOut data.Garbanzo, err error)
 	DeleteGarbanzoByAPIUUID(ctx context.Context, apiUUID uuid.UUID) (err error)
 }
 
@@ -85,7 +86,7 @@ func (g *garbanzo) delete(w http.ResponseWriter, req *http.Request) {
 	Respond(w, http.StatusNoContent, nil)
 }
 
-func fromPersistence(garbanzo persistence.Garbanzo, baseURL string) Garbanzo {
+func fromPersistence(garbanzo data.Garbanzo, baseURL string) Garbanzo {
 	return Garbanzo{
 		Link:         baseURL + garbanzo.APIUUID.String(),
 		GarbanzoType: garbanzo.GarbanzoType.String(),

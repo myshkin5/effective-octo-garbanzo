@@ -9,7 +9,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/myshkin5/effective-octo-garbanzo/persistence"
+	"github.com/myshkin5/effective-octo-garbanzo/persistence/data"
 	"github.com/satori/go.uuid"
 )
 
@@ -19,7 +19,7 @@ type mockGarbanzoService struct {
 		Ctx chan context.Context
 	}
 	FetchAllGarbanzosOutput struct {
-		Garbanzos chan []persistence.Garbanzo
+		Garbanzos chan []data.Garbanzo
 		Err       chan error
 	}
 	FetchGarbanzoByAPIUUIDCalled chan bool
@@ -28,16 +28,16 @@ type mockGarbanzoService struct {
 		ApiUUID chan uuid.UUID
 	}
 	FetchGarbanzoByAPIUUIDOutput struct {
-		Garbanzo chan persistence.Garbanzo
+		Garbanzo chan data.Garbanzo
 		Err      chan error
 	}
 	CreateGarbanzoCalled chan bool
 	CreateGarbanzoInput  struct {
 		Ctx        chan context.Context
-		GarbanzoIn chan persistence.Garbanzo
+		GarbanzoIn chan data.Garbanzo
 	}
 	CreateGarbanzoOutput struct {
-		GarbanzoOut chan persistence.Garbanzo
+		GarbanzoOut chan data.Garbanzo
 		Err         chan error
 	}
 	DeleteGarbanzoByAPIUUIDCalled chan bool
@@ -54,17 +54,17 @@ func newMockGarbanzoService() *mockGarbanzoService {
 	m := &mockGarbanzoService{}
 	m.FetchAllGarbanzosCalled = make(chan bool, 100)
 	m.FetchAllGarbanzosInput.Ctx = make(chan context.Context, 100)
-	m.FetchAllGarbanzosOutput.Garbanzos = make(chan []persistence.Garbanzo, 100)
+	m.FetchAllGarbanzosOutput.Garbanzos = make(chan []data.Garbanzo, 100)
 	m.FetchAllGarbanzosOutput.Err = make(chan error, 100)
 	m.FetchGarbanzoByAPIUUIDCalled = make(chan bool, 100)
 	m.FetchGarbanzoByAPIUUIDInput.Ctx = make(chan context.Context, 100)
 	m.FetchGarbanzoByAPIUUIDInput.ApiUUID = make(chan uuid.UUID, 100)
-	m.FetchGarbanzoByAPIUUIDOutput.Garbanzo = make(chan persistence.Garbanzo, 100)
+	m.FetchGarbanzoByAPIUUIDOutput.Garbanzo = make(chan data.Garbanzo, 100)
 	m.FetchGarbanzoByAPIUUIDOutput.Err = make(chan error, 100)
 	m.CreateGarbanzoCalled = make(chan bool, 100)
 	m.CreateGarbanzoInput.Ctx = make(chan context.Context, 100)
-	m.CreateGarbanzoInput.GarbanzoIn = make(chan persistence.Garbanzo, 100)
-	m.CreateGarbanzoOutput.GarbanzoOut = make(chan persistence.Garbanzo, 100)
+	m.CreateGarbanzoInput.GarbanzoIn = make(chan data.Garbanzo, 100)
+	m.CreateGarbanzoOutput.GarbanzoOut = make(chan data.Garbanzo, 100)
 	m.CreateGarbanzoOutput.Err = make(chan error, 100)
 	m.DeleteGarbanzoByAPIUUIDCalled = make(chan bool, 100)
 	m.DeleteGarbanzoByAPIUUIDInput.Ctx = make(chan context.Context, 100)
@@ -72,18 +72,18 @@ func newMockGarbanzoService() *mockGarbanzoService {
 	m.DeleteGarbanzoByAPIUUIDOutput.Err = make(chan error, 100)
 	return m
 }
-func (m *mockGarbanzoService) FetchAllGarbanzos(ctx context.Context) (garbanzos []persistence.Garbanzo, err error) {
+func (m *mockGarbanzoService) FetchAllGarbanzos(ctx context.Context) (garbanzos []data.Garbanzo, err error) {
 	m.FetchAllGarbanzosCalled <- true
 	m.FetchAllGarbanzosInput.Ctx <- ctx
 	return <-m.FetchAllGarbanzosOutput.Garbanzos, <-m.FetchAllGarbanzosOutput.Err
 }
-func (m *mockGarbanzoService) FetchGarbanzoByAPIUUID(ctx context.Context, apiUUID uuid.UUID) (garbanzo persistence.Garbanzo, err error) {
+func (m *mockGarbanzoService) FetchGarbanzoByAPIUUID(ctx context.Context, apiUUID uuid.UUID) (garbanzo data.Garbanzo, err error) {
 	m.FetchGarbanzoByAPIUUIDCalled <- true
 	m.FetchGarbanzoByAPIUUIDInput.Ctx <- ctx
 	m.FetchGarbanzoByAPIUUIDInput.ApiUUID <- apiUUID
 	return <-m.FetchGarbanzoByAPIUUIDOutput.Garbanzo, <-m.FetchGarbanzoByAPIUUIDOutput.Err
 }
-func (m *mockGarbanzoService) CreateGarbanzo(ctx context.Context, garbanzoIn persistence.Garbanzo) (garbanzoOut persistence.Garbanzo, err error) {
+func (m *mockGarbanzoService) CreateGarbanzo(ctx context.Context, garbanzoIn data.Garbanzo) (garbanzoOut data.Garbanzo, err error) {
 	m.CreateGarbanzoCalled <- true
 	m.CreateGarbanzoInput.Ctx <- ctx
 	m.CreateGarbanzoInput.GarbanzoIn <- garbanzoIn

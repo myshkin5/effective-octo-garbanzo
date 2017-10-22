@@ -9,9 +9,11 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/myshkin5/effective-octo-garbanzo/persistence"
-	"github.com/myshkin5/effective-octo-garbanzo/services"
 	"github.com/satori/go.uuid"
+
+	"github.com/myshkin5/effective-octo-garbanzo/persistence"
+	"github.com/myshkin5/effective-octo-garbanzo/persistence/data"
+	"github.com/myshkin5/effective-octo-garbanzo/services"
 )
 
 var _ = Describe("Garbanzo", func() {
@@ -29,7 +31,7 @@ var _ = Describe("Garbanzo", func() {
 	})
 
 	It("fetches all garbanzos", func() {
-		var garbanzos []persistence.Garbanzo
+		var garbanzos []data.Garbanzo
 		mockStore.FetchAllGarbanzosOutput.Garbanzos <- garbanzos
 		err := errors.New("some error")
 		mockStore.FetchAllGarbanzosOutput.Err <- err
@@ -50,8 +52,8 @@ var _ = Describe("Garbanzo", func() {
 	})
 
 	It("fetches a garbanzo by API UUID", func() {
-		garbanzo := persistence.Garbanzo{
-			GarbanzoType: persistence.DESI,
+		garbanzo := data.Garbanzo{
+			GarbanzoType: data.DESI,
 		}
 		mockStore.FetchGarbanzoByAPIUUIDOutput.Garbanzo <- garbanzo
 		err := errors.New("some error")
@@ -81,8 +83,8 @@ var _ = Describe("Garbanzo", func() {
 		mockStore.CreateGarbanzoOutput.GarbanzoId <- garbanzoId
 		mockStore.CreateGarbanzoOutput.Err <- nil
 		ctx := context.TODO()
-		garbanzo := persistence.Garbanzo{
-			GarbanzoType: persistence.DESI,
+		garbanzo := data.Garbanzo{
+			GarbanzoType: data.DESI,
 		}
 
 		actualGarbanzo, actualErr := service.CreateGarbanzo(ctx, garbanzo)
@@ -90,7 +92,7 @@ var _ = Describe("Garbanzo", func() {
 		Expect(actualGarbanzo.Id).To(Equal(garbanzoId))
 		Expect(actualErr).To(BeNil())
 		Expect(actualGarbanzo.APIUUID).NotTo(Equal(uuid.UUID{}))
-		Expect(actualGarbanzo.GarbanzoType).To(Equal(persistence.DESI))
+		Expect(actualGarbanzo.GarbanzoType).To(Equal(data.DESI))
 
 		Expect(mockStore.CreateGarbanzoCalled).To(HaveLen(1))
 		var actualDB persistence.Database
@@ -99,7 +101,7 @@ var _ = Describe("Garbanzo", func() {
 		var actualCtx context.Context
 		Expect(mockStore.CreateGarbanzoInput.Ctx).To(Receive(&actualCtx))
 		Expect(actualCtx).To(Equal(ctx))
-		var persistedGarbanzo persistence.Garbanzo
+		var persistedGarbanzo data.Garbanzo
 		Expect(mockStore.CreateGarbanzoInput.Garbanzo).To(Receive(&persistedGarbanzo))
 		Expect(persistedGarbanzo.APIUUID).To(Equal(actualGarbanzo.APIUUID))
 		Expect(persistedGarbanzo.GarbanzoType).To(Equal(garbanzo.GarbanzoType))

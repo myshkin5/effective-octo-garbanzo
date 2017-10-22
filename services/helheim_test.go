@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/myshkin5/effective-octo-garbanzo/persistence"
+	"github.com/myshkin5/effective-octo-garbanzo/persistence/data"
 	"github.com/satori/go.uuid"
 )
 
@@ -21,7 +22,7 @@ type mockGarbanzoStore struct {
 		Database chan persistence.Database
 	}
 	FetchAllGarbanzosOutput struct {
-		Garbanzos chan []persistence.Garbanzo
+		Garbanzos chan []data.Garbanzo
 		Err       chan error
 	}
 	FetchGarbanzoByAPIUUIDCalled chan bool
@@ -31,14 +32,14 @@ type mockGarbanzoStore struct {
 		ApiUUID  chan uuid.UUID
 	}
 	FetchGarbanzoByAPIUUIDOutput struct {
-		Garbanzo chan persistence.Garbanzo
+		Garbanzo chan data.Garbanzo
 		Err      chan error
 	}
 	CreateGarbanzoCalled chan bool
 	CreateGarbanzoInput  struct {
 		Ctx      chan context.Context
 		Database chan persistence.Database
-		Garbanzo chan persistence.Garbanzo
+		Garbanzo chan data.Garbanzo
 	}
 	CreateGarbanzoOutput struct {
 		GarbanzoId chan int
@@ -60,18 +61,18 @@ func newMockGarbanzoStore() *mockGarbanzoStore {
 	m.FetchAllGarbanzosCalled = make(chan bool, 100)
 	m.FetchAllGarbanzosInput.Ctx = make(chan context.Context, 100)
 	m.FetchAllGarbanzosInput.Database = make(chan persistence.Database, 100)
-	m.FetchAllGarbanzosOutput.Garbanzos = make(chan []persistence.Garbanzo, 100)
+	m.FetchAllGarbanzosOutput.Garbanzos = make(chan []data.Garbanzo, 100)
 	m.FetchAllGarbanzosOutput.Err = make(chan error, 100)
 	m.FetchGarbanzoByAPIUUIDCalled = make(chan bool, 100)
 	m.FetchGarbanzoByAPIUUIDInput.Ctx = make(chan context.Context, 100)
 	m.FetchGarbanzoByAPIUUIDInput.Database = make(chan persistence.Database, 100)
 	m.FetchGarbanzoByAPIUUIDInput.ApiUUID = make(chan uuid.UUID, 100)
-	m.FetchGarbanzoByAPIUUIDOutput.Garbanzo = make(chan persistence.Garbanzo, 100)
+	m.FetchGarbanzoByAPIUUIDOutput.Garbanzo = make(chan data.Garbanzo, 100)
 	m.FetchGarbanzoByAPIUUIDOutput.Err = make(chan error, 100)
 	m.CreateGarbanzoCalled = make(chan bool, 100)
 	m.CreateGarbanzoInput.Ctx = make(chan context.Context, 100)
 	m.CreateGarbanzoInput.Database = make(chan persistence.Database, 100)
-	m.CreateGarbanzoInput.Garbanzo = make(chan persistence.Garbanzo, 100)
+	m.CreateGarbanzoInput.Garbanzo = make(chan data.Garbanzo, 100)
 	m.CreateGarbanzoOutput.GarbanzoId = make(chan int, 100)
 	m.CreateGarbanzoOutput.Err = make(chan error, 100)
 	m.DeleteGarbanzoByAPIUUIDCalled = make(chan bool, 100)
@@ -81,20 +82,20 @@ func newMockGarbanzoStore() *mockGarbanzoStore {
 	m.DeleteGarbanzoByAPIUUIDOutput.Err = make(chan error, 100)
 	return m
 }
-func (m *mockGarbanzoStore) FetchAllGarbanzos(ctx context.Context, database persistence.Database) (garbanzos []persistence.Garbanzo, err error) {
+func (m *mockGarbanzoStore) FetchAllGarbanzos(ctx context.Context, database persistence.Database) (garbanzos []data.Garbanzo, err error) {
 	m.FetchAllGarbanzosCalled <- true
 	m.FetchAllGarbanzosInput.Ctx <- ctx
 	m.FetchAllGarbanzosInput.Database <- database
 	return <-m.FetchAllGarbanzosOutput.Garbanzos, <-m.FetchAllGarbanzosOutput.Err
 }
-func (m *mockGarbanzoStore) FetchGarbanzoByAPIUUID(ctx context.Context, database persistence.Database, apiUUID uuid.UUID) (garbanzo persistence.Garbanzo, err error) {
+func (m *mockGarbanzoStore) FetchGarbanzoByAPIUUID(ctx context.Context, database persistence.Database, apiUUID uuid.UUID) (garbanzo data.Garbanzo, err error) {
 	m.FetchGarbanzoByAPIUUIDCalled <- true
 	m.FetchGarbanzoByAPIUUIDInput.Ctx <- ctx
 	m.FetchGarbanzoByAPIUUIDInput.Database <- database
 	m.FetchGarbanzoByAPIUUIDInput.ApiUUID <- apiUUID
 	return <-m.FetchGarbanzoByAPIUUIDOutput.Garbanzo, <-m.FetchGarbanzoByAPIUUIDOutput.Err
 }
-func (m *mockGarbanzoStore) CreateGarbanzo(ctx context.Context, database persistence.Database, garbanzo persistence.Garbanzo) (garbanzoId int, err error) {
+func (m *mockGarbanzoStore) CreateGarbanzo(ctx context.Context, database persistence.Database, garbanzo data.Garbanzo) (garbanzoId int, err error) {
 	m.CreateGarbanzoCalled <- true
 	m.CreateGarbanzoInput.Ctx <- ctx
 	m.CreateGarbanzoInput.Database <- database
@@ -107,6 +108,61 @@ func (m *mockGarbanzoStore) DeleteGarbanzoByAPIUUID(ctx context.Context, databas
 	m.DeleteGarbanzoByAPIUUIDInput.Database <- database
 	m.DeleteGarbanzoByAPIUUIDInput.ApiUUID <- apiUUID
 	return <-m.DeleteGarbanzoByAPIUUIDOutput.Err
+}
+
+type mockContext struct {
+	DeadlineCalled chan bool
+	DeadlineOutput struct {
+		Deadline chan time.Time
+		Ok       chan bool
+	}
+	DoneCalled chan bool
+	DoneOutput struct {
+		Ret0 chan (<-chan struct{})
+	}
+	ErrCalled chan bool
+	ErrOutput struct {
+		Ret0 chan error
+	}
+	ValueCalled chan bool
+	ValueInput  struct {
+		Key chan interface{}
+	}
+	ValueOutput struct {
+		Ret0 chan interface{}
+	}
+}
+
+func newMockContext() *mockContext {
+	m := &mockContext{}
+	m.DeadlineCalled = make(chan bool, 100)
+	m.DeadlineOutput.Deadline = make(chan time.Time, 100)
+	m.DeadlineOutput.Ok = make(chan bool, 100)
+	m.DoneCalled = make(chan bool, 100)
+	m.DoneOutput.Ret0 = make(chan (<-chan struct{}), 100)
+	m.ErrCalled = make(chan bool, 100)
+	m.ErrOutput.Ret0 = make(chan error, 100)
+	m.ValueCalled = make(chan bool, 100)
+	m.ValueInput.Key = make(chan interface{}, 100)
+	m.ValueOutput.Ret0 = make(chan interface{}, 100)
+	return m
+}
+func (m *mockContext) Deadline() (deadline time.Time, ok bool) {
+	m.DeadlineCalled <- true
+	return <-m.DeadlineOutput.Deadline, <-m.DeadlineOutput.Ok
+}
+func (m *mockContext) Done() <-chan struct{} {
+	m.DoneCalled <- true
+	return <-m.DoneOutput.Ret0
+}
+func (m *mockContext) Err() error {
+	m.ErrCalled <- true
+	return <-m.ErrOutput.Ret0
+}
+func (m *mockContext) Value(key interface{}) interface{} {
+	m.ValueCalled <- true
+	m.ValueInput.Key <- key
+	return <-m.ValueOutput.Ret0
 }
 
 type mockDatabase struct {
@@ -182,59 +238,4 @@ func (m *mockDatabase) QueryRowContext(ctx context.Context, query string, args .
 	m.QueryRowContextInput.Query <- query
 	m.QueryRowContextInput.Args <- args
 	return <-m.QueryRowContextOutput.Ret0
-}
-
-type mockContext struct {
-	DeadlineCalled chan bool
-	DeadlineOutput struct {
-		Deadline chan time.Time
-		Ok       chan bool
-	}
-	DoneCalled chan bool
-	DoneOutput struct {
-		Ret0 chan (<-chan struct{})
-	}
-	ErrCalled chan bool
-	ErrOutput struct {
-		Ret0 chan error
-	}
-	ValueCalled chan bool
-	ValueInput  struct {
-		Key chan interface{}
-	}
-	ValueOutput struct {
-		Ret0 chan interface{}
-	}
-}
-
-func newMockContext() *mockContext {
-	m := &mockContext{}
-	m.DeadlineCalled = make(chan bool, 100)
-	m.DeadlineOutput.Deadline = make(chan time.Time, 100)
-	m.DeadlineOutput.Ok = make(chan bool, 100)
-	m.DoneCalled = make(chan bool, 100)
-	m.DoneOutput.Ret0 = make(chan (<-chan struct{}), 100)
-	m.ErrCalled = make(chan bool, 100)
-	m.ErrOutput.Ret0 = make(chan error, 100)
-	m.ValueCalled = make(chan bool, 100)
-	m.ValueInput.Key = make(chan interface{}, 100)
-	m.ValueOutput.Ret0 = make(chan interface{}, 100)
-	return m
-}
-func (m *mockContext) Deadline() (deadline time.Time, ok bool) {
-	m.DeadlineCalled <- true
-	return <-m.DeadlineOutput.Deadline, <-m.DeadlineOutput.Ok
-}
-func (m *mockContext) Done() <-chan struct{} {
-	m.DoneCalled <- true
-	return <-m.DoneOutput.Ret0
-}
-func (m *mockContext) Err() error {
-	m.ErrCalled <- true
-	return <-m.ErrOutput.Ret0
-}
-func (m *mockContext) Value(key interface{}) interface{} {
-	m.ValueCalled <- true
-	m.ValueInput.Key <- key
-	return <-m.ValueOutput.Ret0
 }

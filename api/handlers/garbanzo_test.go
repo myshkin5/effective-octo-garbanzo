@@ -16,6 +16,7 @@ import (
 
 	"github.com/myshkin5/effective-octo-garbanzo/api/handlers"
 	"github.com/myshkin5/effective-octo-garbanzo/persistence"
+	"github.com/myshkin5/effective-octo-garbanzo/persistence/data"
 )
 
 var _ = Describe("Garbanzo", func() {
@@ -45,9 +46,9 @@ var _ = Describe("Garbanzo", func() {
 				request, err = http.NewRequest(http.MethodGet, "/garbanzos/"+apiUUID.String(), nil)
 				Expect(err).NotTo(HaveOccurred())
 
-				mockService.FetchGarbanzoByAPIUUIDOutput.Garbanzo <- persistence.Garbanzo{
+				mockService.FetchGarbanzoByAPIUUIDOutput.Garbanzo <- data.Garbanzo{
 					APIUUID:      apiUUID,
-					GarbanzoType: persistence.DESI,
+					GarbanzoType: data.DESI,
 					DiameterMM:   4.2,
 				}
 				mockService.FetchGarbanzoByAPIUUIDOutput.Err <- nil
@@ -101,7 +102,7 @@ var _ = Describe("Garbanzo", func() {
 					request, err = http.NewRequest(http.MethodGet, "/garbanzos/"+apiUUID.String(), nil)
 					Expect(err).NotTo(HaveOccurred())
 
-					mockService.FetchGarbanzoByAPIUUIDOutput.Garbanzo <- persistence.Garbanzo{}
+					mockService.FetchGarbanzoByAPIUUIDOutput.Garbanzo <- data.Garbanzo{}
 					mockService.FetchGarbanzoByAPIUUIDOutput.Err <- errors.New("bad stuff")
 
 					router.ServeHTTP(recorder, request)
@@ -126,7 +127,7 @@ var _ = Describe("Garbanzo", func() {
 					request, err = http.NewRequest(http.MethodGet, "/garbanzos/"+apiUUID.String(), nil)
 					Expect(err).NotTo(HaveOccurred())
 
-					mockService.FetchGarbanzoByAPIUUIDOutput.Garbanzo <- persistence.Garbanzo{}
+					mockService.FetchGarbanzoByAPIUUIDOutput.Garbanzo <- data.Garbanzo{}
 					mockService.FetchGarbanzoByAPIUUIDOutput.Err <- persistence.ErrNotFound
 
 					router.ServeHTTP(recorder, request)

@@ -8,7 +8,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/justinas/alice"
 
-	"github.com/myshkin5/effective-octo-garbanzo/persistence"
+	"github.com/myshkin5/effective-octo-garbanzo/persistence/data"
 )
 
 type garbanzoCollection struct {
@@ -54,13 +54,13 @@ func (g *garbanzoCollection) post(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	garbanzoType, err := persistence.GarbanzoTypeFromString(dto.GarbanzoType)
+	garbanzoType, err := data.GarbanzoTypeFromString(dto.GarbanzoType)
 	if err != nil {
 		Error(w, fmt.Sprintf("Unknown garbanzo type: %s", dto.GarbanzoType), http.StatusBadRequest, err)
 		return
 	}
 
-	garbanzo, err := g.garbanzoService.CreateGarbanzo(req.Context(), persistence.Garbanzo{
+	garbanzo, err := g.garbanzoService.CreateGarbanzo(req.Context(), data.Garbanzo{
 		GarbanzoType: garbanzoType,
 		DiameterMM:   dto.DiameterMM,
 	})

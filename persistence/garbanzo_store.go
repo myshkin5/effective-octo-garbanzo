@@ -3,42 +3,16 @@ package persistence
 import (
 	"context"
 	"database/sql"
-	"fmt"
+
+	"github.com/satori/go.uuid"
 
 	"github.com/myshkin5/effective-octo-garbanzo/logs"
-	"github.com/satori/go.uuid"
+	"github.com/myshkin5/effective-octo-garbanzo/persistence/data"
 )
-
-//go:generate stringer -type=garbanzoType
-
-type garbanzoType int
-
-const (
-	DESI   garbanzoType = 1001
-	KABULI garbanzoType = 1002
-)
-
-func GarbanzoTypeFromString(gType string) (garbanzoType, error) {
-	switch gType {
-	case DESI.String():
-		return DESI, nil
-	case KABULI.String():
-		return KABULI, nil
-	default:
-		return 0, fmt.Errorf("invalid garbanzo type: %s", gType)
-	}
-}
-
-type Garbanzo struct {
-	Id           int
-	APIUUID      uuid.UUID
-	GarbanzoType garbanzoType
-	DiameterMM   float32
-}
 
 type GarbanzoStore struct{}
 
-func (GarbanzoStore) FetchAllGarbanzos(ctx context.Context, database Database) ([]Garbanzo, error) {
+func (GarbanzoStore) FetchAllGarbanzos(ctx context.Context, database Database) ([]data.Garbanzo, error) {
 	query := "select id, api_uuid, garbanzo_type_id, diameter_mm from garbanzo order by id"
 
 	rows, err := database.QueryContext(ctx, query)
@@ -47,18 +21,18 @@ func (GarbanzoStore) FetchAllGarbanzos(ctx context.Context, database Database) (
 	}
 	defer rows.Close()
 
-	var garbanzos []Garbanzo
+	var garbanzos []data.Garbanzo
 	for rows.Next() {
 		var id int
 		var apiUUID uuid.UUID
-		var garbanzoTypeId garbanzoType
+		var garbanzoTypeId data.GarbanzoType
 		var diameterMM float32
 		err = rows.Scan(&id, &apiUUID, &garbanzoTypeId, &diameterMM)
 		if err != nil {
 			return nil, err
 		}
 
-		garbanzo := Garbanzo{
+		garbanzo := data.Garbanzo{
 			Id:           id,
 			APIUUID:      apiUUID,
 			GarbanzoType: garbanzoTypeId,
@@ -70,20 +44,20 @@ func (GarbanzoStore) FetchAllGarbanzos(ctx context.Context, database Database) (
 	return garbanzos, nil
 }
 
-func (GarbanzoStore) FetchGarbanzoByAPIUUID(ctx context.Context, database Database, apiUUID uuid.UUID) (Garbanzo, error) {
+func (GarbanzoStore) FetchGarbanzoByAPIUUID(ctx context.Context, database Database, apiUUID uuid.UUID) (data.Garbanzo, error) {
 	query := "select id, garbanzo_type_id, diameter_mm from garbanzo where api_uuid = $1"
 
 	var id int
-	var garbanzoTypeId garbanzoType
+	var garbanzoTypeId data.GarbanzoType
 	var diameterMM float32
 	err := database.QueryRowContext(ctx, query, apiUUID).Scan(&id, &garbanzoTypeId, &diameterMM)
 	if err == sql.ErrNoRows {
-		return Garbanzo{}, ErrNotFound
+		return data.Garbanzo{}, ErrNotFound
 	} else if err != nil {
-		return Garbanzo{}, err
+		return data.Garbanzo{}, err
 	}
 
-	return Garbanzo{
+	return data.Garbanzo{
 		Id:           id,
 		APIUUID:      apiUUID,
 		GarbanzoType: garbanzoTypeId,
@@ -91,7 +65,7 @@ func (GarbanzoStore) FetchGarbanzoByAPIUUID(ctx context.Context, database Databa
 	}, nil
 }
 
-func (GarbanzoStore) CreateGarbanzo(ctx context.Context, database Database, garbanzo Garbanzo) (int, error) {
+func (GarbanzoStore) CreateGarbanzo(ctx context.Context, database Database, garbanzo data.Garbanzo) (int, error) {
 	query := "insert into garbanzo (api_uuid, garbanzo_type_id, diameter_mm) values ($1, $2, $3) returning id"
 
 	var garbanzoId int

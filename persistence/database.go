@@ -53,7 +53,7 @@ func (l migrateLogger) Verbose() bool {
 }
 
 func Migrate() error {
-	sourceURL := GetEnvWithDefault("DB_SOURCE_URL", "file://./resources/ddl")
+	sourceURL := GetEnvWithDefault("DB_SOURCE_URL", "file://./persistence/ddl")
 	databaseURL := getDatabaseURL()
 
 	migrator, err := migrate.New(sourceURL, databaseURL)

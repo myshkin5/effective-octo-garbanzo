@@ -14,7 +14,7 @@ import (
 	"github.com/satori/go.uuid"
 
 	"github.com/myshkin5/effective-octo-garbanzo/api/handlers"
-	"github.com/myshkin5/effective-octo-garbanzo/persistence"
+	"github.com/myshkin5/effective-octo-garbanzo/persistence/data"
 )
 
 var _ = Describe("GarbanzoCollection", func() {
@@ -42,7 +42,7 @@ var _ = Describe("GarbanzoCollection", func() {
 				request, err = http.NewRequest(http.MethodGet, "/garbanzos", nil)
 				Expect(err).NotTo(HaveOccurred())
 
-				mockService.FetchAllGarbanzosOutput.Garbanzos <- []persistence.Garbanzo{}
+				mockService.FetchAllGarbanzosOutput.Garbanzos <- []data.Garbanzo{}
 				mockService.FetchAllGarbanzosOutput.Err <- nil
 
 				router.ServeHTTP(recorder, request)
@@ -75,15 +75,15 @@ var _ = Describe("GarbanzoCollection", func() {
 				apiUUID1 = uuid.NewV4()
 				apiUUID2 = uuid.NewV4()
 
-				mockService.FetchAllGarbanzosOutput.Garbanzos <- []persistence.Garbanzo{
+				mockService.FetchAllGarbanzosOutput.Garbanzos <- []data.Garbanzo{
 					{
 						APIUUID:      apiUUID1,
-						GarbanzoType: persistence.DESI,
+						GarbanzoType: data.DESI,
 						DiameterMM:   4.2,
 					},
 					{
 						APIUUID:      apiUUID2,
-						GarbanzoType: persistence.KABULI,
+						GarbanzoType: data.KABULI,
 						DiameterMM:   6.4,
 					},
 				}
@@ -160,10 +160,10 @@ var _ = Describe("GarbanzoCollection", func() {
 
 				apiUUID = uuid.NewV4()
 
-				mockService.CreateGarbanzoOutput.GarbanzoOut <- persistence.Garbanzo{
+				mockService.CreateGarbanzoOutput.GarbanzoOut <- data.Garbanzo{
 					Id:           234,
 					APIUUID:      apiUUID,
-					GarbanzoType: persistence.DESI,
+					GarbanzoType: data.DESI,
 					DiameterMM:   4.2,
 				}
 				mockService.CreateGarbanzoOutput.Err <- nil
@@ -172,10 +172,10 @@ var _ = Describe("GarbanzoCollection", func() {
 			})
 
 			It("creates the garbanzo via the service", func() {
-				var garbanzo persistence.Garbanzo
+				var garbanzo data.Garbanzo
 				Expect(mockService.CreateGarbanzoInput.GarbanzoIn).To(Receive(&garbanzo))
-				Expect(garbanzo).To(Equal(persistence.Garbanzo{
-					GarbanzoType: persistence.DESI,
+				Expect(garbanzo).To(Equal(data.Garbanzo{
+					GarbanzoType: data.DESI,
 					DiameterMM:   4.2,
 				}))
 			})
@@ -221,6 +221,32 @@ var _ = Describe("GarbanzoCollection", func() {
 				})
 			})
 
+			Context("invalid type", func() {
+				BeforeEach(func() {
+					var err error
+					body := strings.NewReader(`{
+						"type":        "RED",
+						"diameter-mm": 4.2
+					}`)
+					request, err = http.NewRequest(http.MethodPost, "/garbanzos", body)
+					Expect(err).NotTo(HaveOccurred())
+
+					router.ServeHTTP(recorder, request)
+				})
+
+				It("returns an internal server error status code", func() {
+					Expect(recorder.Code).To(Equal(http.StatusBadRequest))
+				})
+
+				It("returns a JSON error", func() {
+					Expect(recorder.Body).To(MatchJSON(`{
+						"code": 400,
+						"error": "Unknown garbanzo type: RED",
+						"status": "Bad Request"
+					}`))
+				})
+			})
+
 			Context("persistence error", func() {
 				BeforeEach(func() {
 					var err error
@@ -231,7 +257,7 @@ var _ = Describe("GarbanzoCollection", func() {
 					request, err = http.NewRequest(http.MethodPost, "/garbanzos", body)
 					Expect(err).NotTo(HaveOccurred())
 
-					mockService.CreateGarbanzoOutput.GarbanzoOut <- persistence.Garbanzo{}
+					mockService.CreateGarbanzoOutput.GarbanzoOut <- data.Garbanzo{}
 					mockService.CreateGarbanzoOutput.Err <- errors.New("not good")
 
 					router.ServeHTTP(recorder, request)
