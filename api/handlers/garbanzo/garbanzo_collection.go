@@ -1,4 +1,4 @@
-package handlers
+package garbanzo
 
 import (
 	"encoding/json"
@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/justinas/alice"
 
+	"github.com/myshkin5/effective-octo-garbanzo/api/handlers"
 	"github.com/myshkin5/effective-octo-garbanzo/persistence/data"
 )
 
@@ -16,12 +17,12 @@ type garbanzoCollection struct {
 	baseURL         string
 }
 
-func MapGarbanzoCollectionRoutes(baseURL string, router *mux.Router, middleware alice.Chain, garbanzoService GarbanzoService) {
+func MapCollectionRoutes(baseURL string, router *mux.Router, middleware alice.Chain, garbanzoService GarbanzoService) {
 	handler := &garbanzoCollection{
 		garbanzoService: garbanzoService,
 		baseURL:         baseURL + "garbanzos/",
 	}
-	methodHandler := make(MethodHandler)
+	methodHandler := make(handlers.MethodHandler)
 	methodHandler[http.MethodGet] = http.HandlerFunc(handler.get)
 	methodHandler[http.MethodPost] = http.HandlerFunc(handler.post)
 	router.Handle("/garbanzos", middleware.Then(methodHandler))
@@ -30,7 +31,7 @@ func MapGarbanzoCollectionRoutes(baseURL string, router *mux.Router, middleware 
 func (g *garbanzoCollection) get(w http.ResponseWriter, req *http.Request) {
 	garbanzos, err := g.garbanzoService.FetchAllGarbanzos(req.Context())
 	if err != nil {
-		Error(w, "Error fetching all garbanzos", http.StatusInternalServerError, err)
+		handlers.Error(w, "Error fetching all garbanzos", http.StatusInternalServerError, err)
 		return
 	}
 
@@ -39,8 +40,8 @@ func (g *garbanzoCollection) get(w http.ResponseWriter, req *http.Request) {
 		list = append(list, fromPersistence(garbanzo, g.baseURL))
 	}
 
-	Respond(w, http.StatusOK, JSONObject{
-		"data": JSONObject{
+	handlers.Respond(w, http.StatusOK, handlers.JSONObject{
+		"data": handlers.JSONObject{
 			"garbanzos": list,
 		},
 	})
@@ -50,13 +51,13 @@ func (g *garbanzoCollection) post(w http.ResponseWriter, req *http.Request) {
 	var dto Garbanzo
 	err := json.NewDecoder(req.Body).Decode(&dto)
 	if err != nil {
-		Error(w, INVALID_JSON, http.StatusBadRequest, err)
+		handlers.Error(w, handlers.INVALID_JSON, http.StatusBadRequest, err)
 		return
 	}
 
 	garbanzoType, err := data.GarbanzoTypeFromString(dto.GarbanzoType)
 	if err != nil {
-		Error(w, fmt.Sprintf("Unknown garbanzo type: %s", dto.GarbanzoType), http.StatusBadRequest, err)
+		handlers.Error(w, fmt.Sprintf("Unknown garbanzo type: %s", dto.GarbanzoType), http.StatusBadRequest, err)
 		return
 	}
 
@@ -66,12 +67,12 @@ func (g *garbanzoCollection) post(w http.ResponseWriter, req *http.Request) {
 	})
 	if err != nil {
 		// TODO: Separate bad request issues from internal errors
-		Error(w, "Error creating new garbanzo", http.StatusInternalServerError, err)
+		handlers.Error(w, "Error creating new garbanzo", http.StatusInternalServerError, err)
 		return
 	}
 
-	Respond(w, http.StatusCreated, JSONObject{
-		"data": JSONObject{
+	handlers.Respond(w, http.StatusCreated, handlers.JSONObject{
+		"data": handlers.JSONObject{
 			"garbanzo": fromPersistence(garbanzo, g.baseURL),
 		},
 	})

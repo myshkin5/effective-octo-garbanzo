@@ -10,7 +10,8 @@ import (
 	"github.com/justinas/alice"
 
 	"github.com/myshkin5/effective-octo-garbanzo/api/handlers"
-	"github.com/myshkin5/effective-octo-garbanzo/api/handlers/middleware"
+	"github.com/myshkin5/effective-octo-garbanzo/api/handlers/garbanzo"
+	api_middleware "github.com/myshkin5/effective-octo-garbanzo/api/middleware"
 	"github.com/myshkin5/effective-octo-garbanzo/logs"
 	"github.com/myshkin5/effective-octo-garbanzo/persistence"
 	"github.com/myshkin5/effective-octo-garbanzo/services"
@@ -56,7 +57,7 @@ func initRoutes(port string, garbanzoService *services.GarbanzoService) *mux.Rou
 	loggingHandler := func(handler http.Handler) http.Handler {
 		return gorilla_handlers.LoggingHandler(os.Stdout, handler)
 	}
-	headersHandler := middleware.StandardHeadersHandler
+	headersHandler := api_middleware.StandardHeadersHandler
 
 	middleware := alice.New(loggingHandler, headersHandler)
 
@@ -67,8 +68,8 @@ func initRoutes(port string, garbanzoService *services.GarbanzoService) *mux.Rou
 		baseURL = fmt.Sprintf("http://localhost:%v/", port)
 	}
 
-	handlers.MapGarbanzoCollectionRoutes(baseURL, router, middleware, garbanzoService)
-	handlers.MapGarbanzoRoutes(baseURL, router, middleware, garbanzoService)
+	garbanzo.MapCollectionRoutes(baseURL, router, middleware, garbanzoService)
+	garbanzo.MapRoutes(baseURL, router, middleware, garbanzoService)
 
 	// Must be last mapping
 	handlers.MapCatchAllRoutes(baseURL, router, middleware)

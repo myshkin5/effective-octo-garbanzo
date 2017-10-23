@@ -1,4 +1,4 @@
-package middleware_test
+package garbanzo_test
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestMiddleware(t *testing.T) {
+func TestGarbanzo(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "API - Handlers - Middleware Suite")
+	RunSpecs(t, "API - Handlers - Garbanzo Suite")
 }

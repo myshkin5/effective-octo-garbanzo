@@ -84,7 +84,7 @@ func GetEnvWithDefault(key, defaultValue string) string {
 	value, ok := os.LookupEnv(key)
 	if ok {
 		return value
-	} else {
-		return defaultValue
 	}
+
+	return defaultValue
 }

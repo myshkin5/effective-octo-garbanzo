@@ -1,4 +1,4 @@
-package handlers_test
+package garbanzo_test
 
 import (
 	"errors"
@@ -13,7 +13,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/satori/go.uuid"
 
-	"github.com/myshkin5/effective-octo-garbanzo/api/handlers"
+	"github.com/myshkin5/effective-octo-garbanzo/api/handlers/garbanzo"
 	"github.com/myshkin5/effective-octo-garbanzo/persistence/data"
 )
 
@@ -32,7 +32,7 @@ var _ = Describe("GarbanzoCollection", func() {
 		mockService = newMockGarbanzoService()
 
 		router = mux.NewRouter()
-		handlers.MapGarbanzoCollectionRoutes("http://here/", router, alice.Chain{}, mockService)
+		garbanzo.MapCollectionRoutes("http://here/", router, alice.Chain{}, mockService)
 	})
 
 	Describe("GET", func() {

@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/myshkin5/effective-octo-garbanzo/api/handlers/middleware"
+	"github.com/myshkin5/effective-octo-garbanzo/api/middleware"
 )
 
 var _ = Describe("StandardHeaders", func() {

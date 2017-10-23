@@ -1,4 +1,4 @@
-package handlers_test
+package garbanzo_test
 
 //go:generate hel
 
@@ -14,7 +14,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/satori/go.uuid"
 
-	"github.com/myshkin5/effective-octo-garbanzo/api/handlers"
+	"github.com/myshkin5/effective-octo-garbanzo/api/handlers/garbanzo"
 	"github.com/myshkin5/effective-octo-garbanzo/persistence"
 	"github.com/myshkin5/effective-octo-garbanzo/persistence/data"
 )
@@ -35,7 +35,7 @@ var _ = Describe("Garbanzo", func() {
 		mockService = newMockGarbanzoService()
 
 		router = mux.NewRouter()
-		handlers.MapGarbanzoRoutes("http://here/", router, alice.Chain{}, mockService)
+		garbanzo.MapRoutes("http://here/", router, alice.Chain{}, mockService)
 		apiUUID = uuid.NewV4()
 	})
 
