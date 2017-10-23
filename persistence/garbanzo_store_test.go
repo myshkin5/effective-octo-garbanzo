@@ -5,7 +5,6 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
 	"github.com/satori/go.uuid"
 
 	"github.com/myshkin5/effective-octo-garbanzo/persistence"
@@ -31,7 +30,7 @@ var _ = Describe("GarbanzoStore Integration", func() {
 		store = persistence.GarbanzoStore{}
 	})
 
-	Context("FetchAllGarbanzos", func() {
+	Describe("FetchAllGarbanzos", func() {
 		It("fetches no garbanzos when there are none", func() {
 			garbanzos, err := store.FetchAllGarbanzos(ctx, database)
 			Expect(err).NotTo(HaveOccurred())
@@ -75,7 +74,7 @@ var _ = Describe("GarbanzoStore Integration", func() {
 		})
 	})
 
-	Context("FetchGarbanzoByAPIUUID", func() {
+	Describe("FetchGarbanzoByAPIUUID", func() {
 		It("returns not found when fetching an unknown garbanzo", func() {
 			_, err := store.FetchGarbanzoByAPIUUID(ctx, database, uuid.NewV4())
 
@@ -102,7 +101,7 @@ var _ = Describe("GarbanzoStore Integration", func() {
 		})
 	})
 
-	Context("CreateGarbanzo", func() {
+	Describe("CreateGarbanzo", func() {
 		It("creates a new garbanzo", func() {
 			apiUUID := uuid.NewV4()
 			garbanzo := data.Garbanzo{
@@ -137,7 +136,7 @@ var _ = Describe("GarbanzoStore Integration", func() {
 		})
 	})
 
-	Context("DeleteGarbanzoByAPIUUID", func() {
+	Describe("DeleteGarbanzoByAPIUUID", func() {
 		It("returns not found when deleting an unknown garbanzo", func() {
 			err := store.DeleteGarbanzoByAPIUUID(ctx, database, uuid.NewV4())
 

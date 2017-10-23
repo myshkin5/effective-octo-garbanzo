@@ -39,7 +39,8 @@ var _ = Describe("CatchAll", func() {
 
 		It("returns a good root body", func() {
 			Expect(recorder.Body).To(MatchJSON(`{
-				"health": "http://here/health",
+				"health":    "http://here/health",
+				"octos":     "http://here/octos",
 				"garbanzos": "http://here/garbanzos"
 			}`))
 		})
@@ -61,8 +62,8 @@ var _ = Describe("CatchAll", func() {
 
 		It("returns an error body", func() {
 			Expect(recorder.Body).To(MatchJSON(`{
-				"code": 404,
-				"error": "Not Found",
+				"code":   404,
+				"error":  "Not Found",
 				"status": "Not Found"
 			}`))
 		})

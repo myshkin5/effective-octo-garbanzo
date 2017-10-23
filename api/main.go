@@ -11,6 +11,7 @@ import (
 
 	"github.com/myshkin5/effective-octo-garbanzo/api/handlers"
 	"github.com/myshkin5/effective-octo-garbanzo/api/handlers/garbanzo"
+	"github.com/myshkin5/effective-octo-garbanzo/api/handlers/octo"
 	api_middleware "github.com/myshkin5/effective-octo-garbanzo/api/middleware"
 	"github.com/myshkin5/effective-octo-garbanzo/logs"
 	"github.com/myshkin5/effective-octo-garbanzo/persistence"
@@ -23,9 +24,10 @@ func main() {
 	database := initDatabase()
 
 	garbanzoService := services.NewGarbanzoService(persistence.GarbanzoStore{}, database)
+	octoService := services.NewOctoService(persistence.OctoStore{}, database)
 
 	port := persistence.GetEnvWithDefault("PORT", "8080")
-	router := initRoutes(port, garbanzoService)
+	router := initRoutes(port, octoService, garbanzoService)
 
 	listenAndServe(port, router)
 }
@@ -51,7 +53,7 @@ func initDatabase() persistence.Database {
 	return database
 }
 
-func initRoutes(port string, garbanzoService *services.GarbanzoService) *mux.Router {
+func initRoutes(port string, octoService *services.OctoService, garbanzoService *services.GarbanzoService) *mux.Router {
 	router := mux.NewRouter()
 
 	loggingHandler := func(handler http.Handler) http.Handler {
@@ -67,6 +69,9 @@ func initRoutes(port string, garbanzoService *services.GarbanzoService) *mux.Rou
 	if baseURL == "" {
 		baseURL = fmt.Sprintf("http://localhost:%v/", port)
 	}
+
+	octo.MapCollectionRoutes(baseURL, router, middleware, octoService)
+	octo.MapRoutes(baseURL, router, middleware, octoService)
 
 	garbanzo.MapCollectionRoutes(baseURL, router, middleware, garbanzoService)
 	garbanzo.MapRoutes(baseURL, router, middleware, garbanzoService)

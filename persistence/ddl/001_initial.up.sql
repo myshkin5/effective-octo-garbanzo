@@ -1,3 +1,8 @@
+create table octo (
+  id   serial      primary key,
+  name varchar(40) unique
+);
+
 create table garbanzo_type (
   id   smallint    primary key,
   name varchar(20) unique

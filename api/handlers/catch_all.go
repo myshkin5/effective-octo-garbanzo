@@ -20,6 +20,7 @@ func catchAll(baseURL string) func(w http.ResponseWriter, req *http.Request) {
 
 		Respond(w, http.StatusOK, JSONObject{
 			"health":    baseURL + "health",
+			"octos":     baseURL + "octos",
 			"garbanzos": baseURL + "garbanzos",
 		})
 	}
