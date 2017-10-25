@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/myshkin5/effective-octo-garbanzo/logs"
 	"github.com/myshkin5/effective-octo-garbanzo/persistence/data"
 )
 
@@ -57,37 +56,10 @@ func (OctoStore) FetchOctoByName(ctx context.Context, database Database, name st
 
 func (OctoStore) CreateOcto(ctx context.Context, database Database, octo data.Octo) (int, error) {
 	query := "insert into octo (name) values ($1) returning id"
-
-	var octoId int
-	err := database.QueryRowContext(
-		ctx,
-		query,
-		octo.Name).Scan(&octoId)
-	if err != nil {
-		return 0, err
-	}
-
-	return octoId, nil
+	return ExecInsert(ctx, database, query, octo.Name)
 }
 
 func (OctoStore) DeleteOctoByName(ctx context.Context, database Database, name string) error {
 	query := "delete from octo where name = $1"
-
-	result, err := database.ExecContext(ctx, query, name)
-	if err != nil {
-		return err
-	}
-
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-
-	if rowsAffected == 0 {
-		return ErrNotFound
-	} else if rowsAffected > 1 {
-		logs.Logger.Panic("Deleted multiple rows when expecting only one")
-	}
-
-	return nil
+	return ExecDelete(ctx, database, query, name)
 }

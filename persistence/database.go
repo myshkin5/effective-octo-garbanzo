@@ -42,6 +42,36 @@ func Open() (Database, error) {
 	return database, nil
 }
 
+func ExecInsert(ctx context.Context, database Database, query string, args ...interface{}) (int, error) {
+	var id int
+	err := database.QueryRowContext(ctx, query, args...).Scan(&id)
+	if err != nil {
+		return 0, err
+	}
+
+	return id, nil
+}
+
+func ExecDelete(ctx context.Context, database Database, query string, args ...interface{}) error {
+	result, err := database.ExecContext(ctx, query, args...)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return ErrNotFound
+	} else if rowsAffected > 1 {
+		logs.Logger.Panic("Deleted multiple rows when expecting only one")
+	}
+
+	return nil
+}
+
 type migrateLogger struct{}
 
 func (l migrateLogger) Printf(format string, v ...interface{}) {
