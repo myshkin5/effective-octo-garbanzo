@@ -51,11 +51,7 @@ var _ = Describe("OctoCollection", func() {
 			})
 
 			It("returns an empty list in the body", func() {
-				Expect(recorder.Body).To(MatchJSON(`{
-					"data": {
-						"octos": []
-					}
-				}`))
+				Expect(recorder.Body).To(MatchJSON(`[]`))
 			})
 		})
 
@@ -83,20 +79,18 @@ var _ = Describe("OctoCollection", func() {
 			})
 
 			It("returns all octos in the body", func() {
-				Expect(recorder.Body).To(MatchJSON(`{
-					"data": {
-						"octos": [
-							{
-								"link":        "http://here/octos/kraken",
-								"name":        "kraken"
-							},
-							{
-								"link":        "http://here/octos/cthulhu",
-								"name":        "cthulhu"
-							}
-						]
+				Expect(recorder.Body).To(MatchJSON(`[
+					{
+						"link":      "http://here/octos/kraken",
+						"name":      "kraken",
+						"garbanzos": "http://here/octos/kraken/garbanzos"
+					},
+					{
+						"link":      "http://here/octos/cthulhu",
+						"name":      "cthulhu",
+						"garbanzos": "http://here/octos/cthulhu/garbanzos"
 					}
-				}`))
+				]`))
 			})
 		})
 
@@ -159,12 +153,9 @@ var _ = Describe("OctoCollection", func() {
 
 			It("returns the newly created octo in the body", func() {
 				Expect(recorder.Body).To(MatchJSON(`{
-					"data": {
-						"octo": {
-							"link": "http://here/octos/kraken",
-							"name": "kraken"
-						}
-					}
+					"link":      "http://here/octos/kraken",
+					"name":      "kraken",
+					"garbanzos": "http://here/octos/kraken/garbanzos"
 				}`))
 			})
 		})

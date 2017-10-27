@@ -17,30 +17,54 @@ type GarbanzoStore interface {
 }
 
 type GarbanzoService struct {
-	store    GarbanzoStore
-	database persistence.Database
+	octoStore     OctoStore
+	garbanzoStore GarbanzoStore
+	database      persistence.Database
 }
 
-func NewGarbanzoService(store GarbanzoStore, database persistence.Database) *GarbanzoService {
+func NewGarbanzoService(octoStore OctoStore, garbanzoStore GarbanzoStore, database persistence.Database) *GarbanzoService {
 	return &GarbanzoService{
-		store:    store,
-		database: database,
+		octoStore:     octoStore,
+		garbanzoStore: garbanzoStore,
+		database:      database,
 	}
 }
 
 func (s *GarbanzoService) FetchAllGarbanzos(ctx context.Context) ([]data.Garbanzo, error) {
-	return s.store.FetchAllGarbanzos(ctx, s.database)
+	return s.garbanzoStore.FetchAllGarbanzos(ctx, s.database)
 }
 
 func (s *GarbanzoService) FetchGarbanzoByAPIUUID(ctx context.Context, apiUUID uuid.UUID) (data.Garbanzo, error) {
-	return s.store.FetchGarbanzoByAPIUUID(ctx, s.database, apiUUID)
+	return s.garbanzoStore.FetchGarbanzoByAPIUUID(ctx, s.database, apiUUID)
 }
 
-func (s *GarbanzoService) CreateGarbanzo(ctx context.Context, garbanzo data.Garbanzo) (data.Garbanzo, error) {
+func (s *GarbanzoService) CreateGarbanzo(ctx context.Context, octoName string, garbanzo data.Garbanzo) (garbanzoOut data.Garbanzo, err error) {
+	errors := validate(garbanzo)
+	if len(errors) > 0 {
+		return data.Garbanzo{}, NewValidationError(errors...)
+	}
+
 	garbanzo.APIUUID = uuid.NewV4()
 
-	var err error
-	garbanzo.Id, err = s.store.CreateGarbanzo(ctx, s.database, garbanzo)
+	database, err := s.database.BeginTx(ctx)
+	if err != nil {
+		return data.Garbanzo{}, err
+	}
+	defer func() {
+		if err != nil {
+			database.Rollback()
+			return
+		}
+		err = database.Commit()
+	}()
+
+	octo, err := s.octoStore.FetchOctoByName(ctx, database, octoName)
+	if err != nil {
+		return data.Garbanzo{}, err
+	}
+	garbanzo.OctoId = octo.Id
+
+	garbanzo.Id, err = s.garbanzoStore.CreateGarbanzo(ctx, database, garbanzo)
 	if err != nil {
 		return data.Garbanzo{}, err
 	}
@@ -48,6 +72,18 @@ func (s *GarbanzoService) CreateGarbanzo(ctx context.Context, garbanzo data.Garb
 	return garbanzo, nil
 }
 
+func validate(garbanzo data.Garbanzo) []string {
+	var errors []string
+	if garbanzo.GarbanzoType != data.DESI && garbanzo.GarbanzoType != data.KABULI {
+		errors = append(errors, "'type' is required and must be either 'DESI' or 'KABULI'")
+	}
+	if garbanzo.DiameterMM <= 0.0 {
+		errors = append(errors, "'diameter-mm' is required to be a positive decimal value")
+	}
+
+	return errors
+}
+
 func (s *GarbanzoService) DeleteGarbanzoByAPIUUID(ctx context.Context, apiUUID uuid.UUID) error {
-	return s.store.DeleteGarbanzoByAPIUUID(ctx, s.database, apiUUID)
+	return s.garbanzoStore.DeleteGarbanzoByAPIUUID(ctx, s.database, apiUUID)
 }

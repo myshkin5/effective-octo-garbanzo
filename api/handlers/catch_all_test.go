@@ -40,8 +40,7 @@ var _ = Describe("CatchAll", func() {
 		It("returns a good root body", func() {
 			Expect(recorder.Body).To(MatchJSON(`{
 				"health":    "http://here/health",
-				"octos":     "http://here/octos",
-				"garbanzos": "http://here/garbanzos"
+				"octos":     "http://here/octos"
 			}`))
 		})
 

@@ -23,7 +23,7 @@ func main() {
 
 	database := initDatabase()
 
-	garbanzoService := services.NewGarbanzoService(persistence.GarbanzoStore{}, database)
+	garbanzoService := services.NewGarbanzoService(persistence.OctoStore{}, persistence.GarbanzoStore{}, database)
 	octoService := services.NewOctoService(persistence.OctoStore{}, database)
 
 	port := persistence.GetEnvWithDefault("PORT", "8080")

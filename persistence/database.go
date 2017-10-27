@@ -21,13 +21,16 @@ var (
 )
 
 type Database interface {
-	ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
-	QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error)
-	QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row
+	Exec(ctx context.Context, query string, args ...interface{}) (result sql.Result, err error)
+	Query(ctx context.Context, query string, args ...interface{}) (rows *sql.Rows, err error)
+	QueryRow(ctx context.Context, query string, args ...interface{}) (row *sql.Row)
+	BeginTx(ctx context.Context) (database Database, err error)
+	Commit() (err error)
+	Rollback() (err error)
 }
 
 func Open() (Database, error) {
-	database, err := sql.Open("postgres", getDatabaseURL())
+	db, err := sql.Open("postgres", getDatabaseURL())
 	if err != nil {
 		return nil, err
 	}
@@ -37,14 +40,17 @@ func Open() (Database, error) {
 		return nil, err
 	}
 
-	database.SetMaxOpenConns(maxOpenConns)
+	db.SetMaxOpenConns(maxOpenConns)
 
-	return database, nil
+	return &database{
+		internalDB: db,
+		internalTx: nil,
+	}, nil
 }
 
 func ExecInsert(ctx context.Context, database Database, query string, args ...interface{}) (int, error) {
 	var id int
-	err := database.QueryRowContext(ctx, query, args...).Scan(&id)
+	err := database.QueryRow(ctx, query, args...).Scan(&id)
 	if err != nil {
 		return 0, err
 	}
@@ -53,7 +59,7 @@ func ExecInsert(ctx context.Context, database Database, query string, args ...in
 }
 
 func ExecDelete(ctx context.Context, database Database, query string, args ...interface{}) error {
-	result, err := database.ExecContext(ctx, query, args...)
+	result, err := database.Exec(ctx, query, args...)
 	if err != nil {
 		return err
 	}
@@ -117,4 +123,70 @@ func GetEnvWithDefault(key, defaultValue string) string {
 	}
 
 	return defaultValue
+}
+
+type internalDBAndTx interface {
+	ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
+	QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error)
+	QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row
+}
+
+type internalTx interface {
+	internalDBAndTx
+	Commit() error
+	Rollback() error
+}
+
+type internalDB interface {
+	internalDBAndTx
+	BeginTx(ctx context.Context, opts *sql.TxOptions) (*sql.Tx, error)
+}
+
+type database struct {
+	internalDB internalDB
+	internalTx internalTx
+}
+
+func (d *database) Exec(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
+	if d.internalTx == nil {
+		return d.internalDB.ExecContext(ctx, query, args...)
+	}
+
+	return d.internalTx.ExecContext(ctx, query, args...)
+}
+
+func (d *database) Query(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
+	if d.internalTx == nil {
+		return d.internalDB.QueryContext(ctx, query, args...)
+	}
+
+	return d.internalTx.QueryContext(ctx, query, args...)
+}
+
+func (d *database) QueryRow(ctx context.Context, query string, args ...interface{}) *sql.Row {
+	if d.internalTx == nil {
+		return d.internalDB.QueryRowContext(ctx, query, args...)
+	}
+
+	return d.internalTx.QueryRowContext(ctx, query, args...)
+}
+
+func (d *database) BeginTx(ctx context.Context) (Database, error) {
+	tx, err := d.internalDB.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return &database{
+		internalDB: nil,
+		internalTx: tx,
+	}, nil
+}
+
+func (d *database) Commit() error {
+	return d.internalTx.Commit()
+}
+
+func (d *database) Rollback() error {
+	return d.internalTx.Rollback()
 }

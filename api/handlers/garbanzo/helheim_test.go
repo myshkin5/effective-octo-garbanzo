@@ -34,6 +34,7 @@ type mockGarbanzoService struct {
 	CreateGarbanzoCalled chan bool
 	CreateGarbanzoInput  struct {
 		Ctx        chan context.Context
+		OctoName   chan string
 		GarbanzoIn chan data.Garbanzo
 	}
 	CreateGarbanzoOutput struct {
@@ -63,6 +64,7 @@ func newMockGarbanzoService() *mockGarbanzoService {
 	m.FetchGarbanzoByAPIUUIDOutput.Err = make(chan error, 100)
 	m.CreateGarbanzoCalled = make(chan bool, 100)
 	m.CreateGarbanzoInput.Ctx = make(chan context.Context, 100)
+	m.CreateGarbanzoInput.OctoName = make(chan string, 100)
 	m.CreateGarbanzoInput.GarbanzoIn = make(chan data.Garbanzo, 100)
 	m.CreateGarbanzoOutput.GarbanzoOut = make(chan data.Garbanzo, 100)
 	m.CreateGarbanzoOutput.Err = make(chan error, 100)
@@ -83,9 +85,10 @@ func (m *mockGarbanzoService) FetchGarbanzoByAPIUUID(ctx context.Context, apiUUI
 	m.FetchGarbanzoByAPIUUIDInput.ApiUUID <- apiUUID
 	return <-m.FetchGarbanzoByAPIUUIDOutput.Garbanzo, <-m.FetchGarbanzoByAPIUUIDOutput.Err
 }
-func (m *mockGarbanzoService) CreateGarbanzo(ctx context.Context, garbanzoIn data.Garbanzo) (garbanzoOut data.Garbanzo, err error) {
+func (m *mockGarbanzoService) CreateGarbanzo(ctx context.Context, octoName string, garbanzoIn data.Garbanzo) (garbanzoOut data.Garbanzo, err error) {
 	m.CreateGarbanzoCalled <- true
 	m.CreateGarbanzoInput.Ctx <- ctx
+	m.CreateGarbanzoInput.OctoName <- octoName
 	m.CreateGarbanzoInput.GarbanzoIn <- garbanzoIn
 	return <-m.CreateGarbanzoOutput.GarbanzoOut, <-m.CreateGarbanzoOutput.Err
 }

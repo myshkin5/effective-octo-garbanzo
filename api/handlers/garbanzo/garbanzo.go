@@ -23,7 +23,7 @@ type Garbanzo struct {
 type GarbanzoService interface {
 	FetchAllGarbanzos(ctx context.Context) (garbanzos []data.Garbanzo, err error)
 	FetchGarbanzoByAPIUUID(ctx context.Context, apiUUID uuid.UUID) (garbanzo data.Garbanzo, err error)
-	CreateGarbanzo(ctx context.Context, garbanzoIn data.Garbanzo) (garbanzoOut data.Garbanzo, err error)
+	CreateGarbanzo(ctx context.Context, octoName string, garbanzoIn data.Garbanzo) (garbanzoOut data.Garbanzo, err error)
 	DeleteGarbanzoByAPIUUID(ctx context.Context, apiUUID uuid.UUID) (err error)
 }
 
@@ -35,12 +35,12 @@ type garbanzo struct {
 func MapRoutes(baseURL string, router *mux.Router, middleware alice.Chain, garbanzoService GarbanzoService) {
 	handler := &garbanzo{
 		garbanzoService: garbanzoService,
-		baseURL:         baseURL + "garbanzos/",
+		baseURL:         baseURL,
 	}
 	methodHandler := make(handlers.MethodHandler)
 	methodHandler[http.MethodGet] = http.HandlerFunc(handler.get)
 	methodHandler[http.MethodDelete] = http.HandlerFunc(handler.delete)
-	router.Handle("/garbanzos/{apiUUID}", middleware.Then(methodHandler))
+	router.Handle("/octos/{octoName}/garbanzos/{apiUUID}", middleware.Then(methodHandler))
 }
 
 func (g *garbanzo) get(w http.ResponseWriter, req *http.Request) {
@@ -60,11 +60,7 @@ func (g *garbanzo) get(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	handlers.Respond(w, http.StatusOK, handlers.JSONObject{
-		"data": handlers.JSONObject{
-			"garbanzo": fromPersistence(garbanzo, g.baseURL),
-		},
-	})
+	handlers.Respond(w, http.StatusOK, fromPersistence(garbanzo, g.baseURL, vars["octoName"]))
 }
 
 func (g *garbanzo) delete(w http.ResponseWriter, req *http.Request) {
@@ -87,9 +83,9 @@ func (g *garbanzo) delete(w http.ResponseWriter, req *http.Request) {
 	handlers.Respond(w, http.StatusNoContent, nil)
 }
 
-func fromPersistence(garbanzo data.Garbanzo, baseURL string) Garbanzo {
+func fromPersistence(garbanzo data.Garbanzo, baseURL, octoName string) Garbanzo {
 	return Garbanzo{
-		Link:         baseURL + garbanzo.APIUUID.String(),
+		Link:         fmt.Sprintf("%soctos/%s/garbanzos/%s", baseURL, octoName, garbanzo.APIUUID.String()),
 		GarbanzoType: garbanzo.GarbanzoType.String(),
 		DiameterMM:   garbanzo.DiameterMM,
 	}

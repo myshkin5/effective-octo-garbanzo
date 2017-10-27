@@ -9,11 +9,11 @@ import (
 
 type JSONObject map[string]interface{}
 
-func Respond(w http.ResponseWriter, code int, object JSONObject) {
+func Respond(w http.ResponseWriter, code int, v interface{}) {
 	w.WriteHeader(code)
 
-	if object != nil {
-		bytes, err := json.Marshal(object)
+	if v != nil {
+		bytes, err := json.Marshal(v)
 		if err != nil {
 			logs.Logger.Panic("Unexpected JSON marshal err", err)
 		}

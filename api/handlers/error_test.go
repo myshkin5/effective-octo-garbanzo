@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/myshkin5/effective-octo-garbanzo/api/handlers"
+	"github.com/myshkin5/effective-octo-garbanzo/services"
 )
 
 var _ = Describe("Error", func() {
@@ -15,18 +16,38 @@ var _ = Describe("Error", func() {
 		recorder *httptest.ResponseRecorder
 	)
 
-	BeforeEach(func() {
-		recorder = httptest.NewRecorder()
-		recorder.Code = 0
+	Context("regular errors", func() {
+		BeforeEach(func() {
+			recorder = httptest.NewRecorder()
+			recorder.Code = 0
 
-		handlers.Error(recorder, "bad stuff!", http.StatusInternalServerError)
+			handlers.Error(recorder, "bad stuff!", http.StatusInternalServerError, nil)
+		})
+
+		It("writes the error to a JSON body", func() {
+			Expect(recorder.Body).To(MatchJSON(`{
+				"code":   500,
+				"error":  "bad stuff!",
+				"status": "Internal Server Error"
+			}`))
+		})
 	})
 
-	It("writes the error to a JSON body", func() {
-		Expect(recorder.Body).To(MatchJSON(`{
-			"code":   500,
-			"error":  "bad stuff!",
-			"status": "Internal Server Error"
-		}`))
+	Context("validation errors", func() {
+		BeforeEach(func() {
+			recorder = httptest.NewRecorder()
+			recorder.Code = 0
+
+			handlers.Error(recorder, "bad stuff!", http.StatusInternalServerError, services.NewValidationError("a", "b"))
+		})
+
+		It("writes the error to a JSON body", func() {
+			Expect(recorder.Body).To(MatchJSON(`{
+				"code":   400,
+				"error":  "bad stuff!",
+				"errors": ["a", "b"],
+				"status": "Bad Request"
+			}`))
+		})
 	})
 })

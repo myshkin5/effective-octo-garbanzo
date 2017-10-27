@@ -39,11 +39,7 @@ func (g *octoCollection) get(w http.ResponseWriter, req *http.Request) {
 		list = append(list, fromPersistence(octo, g.baseURL))
 	}
 
-	handlers.Respond(w, http.StatusOK, handlers.JSONObject{
-		"data": handlers.JSONObject{
-			"octos": list,
-		},
-	})
+	handlers.Respond(w, http.StatusOK, list)
 }
 
 func (g *octoCollection) post(w http.ResponseWriter, req *http.Request) {
@@ -58,14 +54,9 @@ func (g *octoCollection) post(w http.ResponseWriter, req *http.Request) {
 		Name: dto.Name,
 	})
 	if err != nil {
-		// TODO: Separate bad request issues from internal errors
 		handlers.Error(w, "Error creating new octo", http.StatusInternalServerError, err)
 		return
 	}
 
-	handlers.Respond(w, http.StatusCreated, handlers.JSONObject{
-		"data": handlers.JSONObject{
-			"octo": fromPersistence(octo, g.baseURL),
-		},
-	})
+	handlers.Respond(w, http.StatusCreated, fromPersistence(octo, g.baseURL))
 }

@@ -261,76 +261,113 @@ func (m *mockContext) Value(key interface{}) interface{} {
 }
 
 type mockDatabase struct {
-	ExecContextCalled chan bool
-	ExecContextInput  struct {
+	ExecCalled chan bool
+	ExecInput  struct {
 		Ctx   chan context.Context
 		Query chan string
 		Args  chan []interface{}
 	}
-	ExecContextOutput struct {
-		Ret0 chan sql.Result
-		Ret1 chan error
+	ExecOutput struct {
+		Result chan sql.Result
+		Err    chan error
 	}
-	QueryContextCalled chan bool
-	QueryContextInput  struct {
+	QueryCalled chan bool
+	QueryInput  struct {
 		Ctx   chan context.Context
 		Query chan string
 		Args  chan []interface{}
 	}
-	QueryContextOutput struct {
-		Ret0 chan *sql.Rows
-		Ret1 chan error
+	QueryOutput struct {
+		Rows chan *sql.Rows
+		Err  chan error
 	}
-	QueryRowContextCalled chan bool
-	QueryRowContextInput  struct {
+	QueryRowCalled chan bool
+	QueryRowInput  struct {
 		Ctx   chan context.Context
 		Query chan string
 		Args  chan []interface{}
 	}
-	QueryRowContextOutput struct {
-		Ret0 chan *sql.Row
+	QueryRowOutput struct {
+		Row chan *sql.Row
+	}
+	BeginTxCalled chan bool
+	BeginTxInput  struct {
+		Ctx chan context.Context
+	}
+	BeginTxOutput struct {
+		Database chan persistence.Database
+		Err      chan error
+	}
+	CommitCalled chan bool
+	CommitOutput struct {
+		Err chan error
+	}
+	RollbackCalled chan bool
+	RollbackOutput struct {
+		Err chan error
 	}
 }
 
 func newMockDatabase() *mockDatabase {
 	m := &mockDatabase{}
-	m.ExecContextCalled = make(chan bool, 100)
-	m.ExecContextInput.Ctx = make(chan context.Context, 100)
-	m.ExecContextInput.Query = make(chan string, 100)
-	m.ExecContextInput.Args = make(chan []interface{}, 100)
-	m.ExecContextOutput.Ret0 = make(chan sql.Result, 100)
-	m.ExecContextOutput.Ret1 = make(chan error, 100)
-	m.QueryContextCalled = make(chan bool, 100)
-	m.QueryContextInput.Ctx = make(chan context.Context, 100)
-	m.QueryContextInput.Query = make(chan string, 100)
-	m.QueryContextInput.Args = make(chan []interface{}, 100)
-	m.QueryContextOutput.Ret0 = make(chan *sql.Rows, 100)
-	m.QueryContextOutput.Ret1 = make(chan error, 100)
-	m.QueryRowContextCalled = make(chan bool, 100)
-	m.QueryRowContextInput.Ctx = make(chan context.Context, 100)
-	m.QueryRowContextInput.Query = make(chan string, 100)
-	m.QueryRowContextInput.Args = make(chan []interface{}, 100)
-	m.QueryRowContextOutput.Ret0 = make(chan *sql.Row, 100)
+	m.ExecCalled = make(chan bool, 100)
+	m.ExecInput.Ctx = make(chan context.Context, 100)
+	m.ExecInput.Query = make(chan string, 100)
+	m.ExecInput.Args = make(chan []interface{}, 100)
+	m.ExecOutput.Result = make(chan sql.Result, 100)
+	m.ExecOutput.Err = make(chan error, 100)
+	m.QueryCalled = make(chan bool, 100)
+	m.QueryInput.Ctx = make(chan context.Context, 100)
+	m.QueryInput.Query = make(chan string, 100)
+	m.QueryInput.Args = make(chan []interface{}, 100)
+	m.QueryOutput.Rows = make(chan *sql.Rows, 100)
+	m.QueryOutput.Err = make(chan error, 100)
+	m.QueryRowCalled = make(chan bool, 100)
+	m.QueryRowInput.Ctx = make(chan context.Context, 100)
+	m.QueryRowInput.Query = make(chan string, 100)
+	m.QueryRowInput.Args = make(chan []interface{}, 100)
+	m.QueryRowOutput.Row = make(chan *sql.Row, 100)
+	m.BeginTxCalled = make(chan bool, 100)
+	m.BeginTxInput.Ctx = make(chan context.Context, 100)
+	m.BeginTxOutput.Database = make(chan persistence.Database, 100)
+	m.BeginTxOutput.Err = make(chan error, 100)
+	m.CommitCalled = make(chan bool, 100)
+	m.CommitOutput.Err = make(chan error, 100)
+	m.RollbackCalled = make(chan bool, 100)
+	m.RollbackOutput.Err = make(chan error, 100)
 	return m
 }
-func (m *mockDatabase) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
-	m.ExecContextCalled <- true
-	m.ExecContextInput.Ctx <- ctx
-	m.ExecContextInput.Query <- query
-	m.ExecContextInput.Args <- args
-	return <-m.ExecContextOutput.Ret0, <-m.ExecContextOutput.Ret1
+func (m *mockDatabase) Exec(ctx context.Context, query string, args ...interface{}) (result sql.Result, err error) {
+	m.ExecCalled <- true
+	m.ExecInput.Ctx <- ctx
+	m.ExecInput.Query <- query
+	m.ExecInput.Args <- args
+	return <-m.ExecOutput.Result, <-m.ExecOutput.Err
 }
-func (m *mockDatabase) QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
-	m.QueryContextCalled <- true
-	m.QueryContextInput.Ctx <- ctx
-	m.QueryContextInput.Query <- query
-	m.QueryContextInput.Args <- args
-	return <-m.QueryContextOutput.Ret0, <-m.QueryContextOutput.Ret1
+func (m *mockDatabase) Query(ctx context.Context, query string, args ...interface{}) (rows *sql.Rows, err error) {
+	m.QueryCalled <- true
+	m.QueryInput.Ctx <- ctx
+	m.QueryInput.Query <- query
+	m.QueryInput.Args <- args
+	return <-m.QueryOutput.Rows, <-m.QueryOutput.Err
 }
-func (m *mockDatabase) QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row {
-	m.QueryRowContextCalled <- true
-	m.QueryRowContextInput.Ctx <- ctx
-	m.QueryRowContextInput.Query <- query
-	m.QueryRowContextInput.Args <- args
-	return <-m.QueryRowContextOutput.Ret0
+func (m *mockDatabase) QueryRow(ctx context.Context, query string, args ...interface{}) (row *sql.Row) {
+	m.QueryRowCalled <- true
+	m.QueryRowInput.Ctx <- ctx
+	m.QueryRowInput.Query <- query
+	m.QueryRowInput.Args <- args
+	return <-m.QueryRowOutput.Row
+}
+func (m *mockDatabase) BeginTx(ctx context.Context) (database persistence.Database, err error) {
+	m.BeginTxCalled <- true
+	m.BeginTxInput.Ctx <- ctx
+	return <-m.BeginTxOutput.Database, <-m.BeginTxOutput.Err
+}
+func (m *mockDatabase) Commit() (err error) {
+	m.CommitCalled <- true
+	return <-m.CommitOutput.Err
+}
+func (m *mockDatabase) Rollback() (err error) {
+	m.RollbackCalled <- true
+	return <-m.RollbackOutput.Err
 }

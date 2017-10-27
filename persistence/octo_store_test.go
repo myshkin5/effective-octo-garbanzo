@@ -22,8 +22,7 @@ var _ = Describe("OctoStore Integration", func() {
 		database, err = persistence.Open()
 		Expect(err).NotTo(HaveOccurred())
 
-		query := "delete from octo"
-		_, err = database.ExecContext(ctx, query)
+		err = cleanDatabase(database)
 		Expect(err).NotTo(HaveOccurred())
 
 		store = persistence.OctoStore{}

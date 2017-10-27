@@ -12,7 +12,7 @@ type OctoStore struct{}
 func (OctoStore) FetchAllOctos(ctx context.Context, database Database) ([]data.Octo, error) {
 	query := "select id, name from octo order by id"
 
-	rows, err := database.QueryContext(ctx, query)
+	rows, err := database.Query(ctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +41,7 @@ func (OctoStore) FetchOctoByName(ctx context.Context, database Database, name st
 	query := "select id from octo where name = $1"
 
 	var id int
-	err := database.QueryRowContext(ctx, query, name).Scan(&id)
+	err := database.QueryRow(ctx, query, name).Scan(&id)
 	if err == sql.ErrNoRows {
 		return data.Octo{}, ErrNotFound
 	} else if err != nil {

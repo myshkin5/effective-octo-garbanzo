@@ -19,11 +19,13 @@ var _ = Describe("Octo", func() {
 		mockStore *mockOctoStore
 		mockDB    *mockDatabase
 		service   *services.OctoService
+		ctx       context.Context
 	)
 
 	BeforeEach(func() {
 		mockStore = newMockOctoStore()
 		mockDB = newMockDatabase()
+		ctx = context.Background()
 
 		service = services.NewOctoService(mockStore, mockDB)
 	})
@@ -33,7 +35,6 @@ var _ = Describe("Octo", func() {
 		mockStore.FetchAllOctosOutput.Octos <- octos
 		err := errors.New("some error")
 		mockStore.FetchAllOctosOutput.Err <- err
-		ctx := context.TODO()
 
 		actualOctos, actualErr := service.FetchAllOctos(ctx)
 
@@ -56,7 +57,6 @@ var _ = Describe("Octo", func() {
 		mockStore.FetchOctoByNameOutput.Octo <- octo
 		err := errors.New("some error")
 		mockStore.FetchOctoByNameOutput.Err <- err
-		ctx := context.TODO()
 
 		actualOcto, actualErr := service.FetchOctoByName(ctx, "kraken")
 
@@ -75,37 +75,48 @@ var _ = Describe("Octo", func() {
 		Expect(actualName).To(Equal("kraken"))
 	})
 
-	It("creates a octo", func() {
-		octoId := 42
-		mockStore.CreateOctoOutput.OctoId <- octoId
-		mockStore.CreateOctoOutput.Err <- nil
-		ctx := context.TODO()
-		octo := data.Octo{
-			Name: "kraken",
-		}
+	Describe("CreateOcto", func() {
+		It("creates a octo", func() {
+			octoId := 42
+			mockStore.CreateOctoOutput.OctoId <- octoId
+			mockStore.CreateOctoOutput.Err <- nil
+			octo := data.Octo{
+				Name: "kraken",
+			}
 
-		actualOcto, actualErr := service.CreateOcto(ctx, octo)
+			actualOcto, actualErr := service.CreateOcto(ctx, octo)
 
-		Expect(actualOcto.Id).To(Equal(octoId))
-		Expect(actualErr).To(BeNil())
-		Expect(actualOcto.Name).To(Equal("kraken"))
+			Expect(actualOcto.Id).To(Equal(octoId))
+			Expect(actualErr).To(BeNil())
+			Expect(actualOcto.Name).To(Equal("kraken"))
 
-		Expect(mockStore.CreateOctoCalled).To(HaveLen(1))
-		var actualDB persistence.Database
-		Expect(mockStore.CreateOctoInput.Database).To(Receive(&actualDB))
-		Expect(actualDB).To(Equal(mockDB))
-		var actualCtx context.Context
-		Expect(mockStore.CreateOctoInput.Ctx).To(Receive(&actualCtx))
-		Expect(actualCtx).To(Equal(ctx))
-		var persistedOcto data.Octo
-		Expect(mockStore.CreateOctoInput.Octo).To(Receive(&persistedOcto))
-		Expect(persistedOcto.Name).To(Equal(actualOcto.Name))
+			Expect(mockStore.CreateOctoCalled).To(HaveLen(1))
+			var actualDB persistence.Database
+			Expect(mockStore.CreateOctoInput.Database).To(Receive(&actualDB))
+			Expect(actualDB).To(Equal(mockDB))
+			var actualCtx context.Context
+			Expect(mockStore.CreateOctoInput.Ctx).To(Receive(&actualCtx))
+			Expect(actualCtx).To(Equal(ctx))
+			var persistedOcto data.Octo
+			Expect(mockStore.CreateOctoInput.Octo).To(Receive(&persistedOcto))
+			Expect(persistedOcto.Name).To(Equal(actualOcto.Name))
+		})
+
+		It("returns a validation error for an empty octo name", func() {
+			octo := data.Octo{}
+
+			_, err := service.CreateOcto(ctx, octo)
+			Expect(err).To(HaveOccurred())
+			validationErr, ok := err.(services.ValidationError)
+			Expect(ok).To(BeTrue())
+			Expect(validationErr.Errors()).To(HaveLen(1))
+			Expect(validationErr.Errors()[0]).To(Equal("'name' is required"))
+		})
 	})
 
 	It("deletes a octo by name", func() {
 		err := errors.New("some error")
 		mockStore.DeleteOctoByNameOutput.Err <- err
-		ctx := context.TODO()
 
 		actualErr := service.DeleteOctoByName(ctx, "kraken")
 

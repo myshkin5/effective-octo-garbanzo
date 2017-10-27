@@ -35,6 +35,10 @@ func (s *OctoService) FetchOctoByName(ctx context.Context, name string) (data.Oc
 }
 
 func (s *OctoService) CreateOcto(ctx context.Context, octo data.Octo) (data.Octo, error) {
+	if len(octo.Name) == 0 {
+		return data.Octo{}, NewValidationError("'name' is required")
+	}
+
 	var err error
 	octo.Id, err = s.store.CreateOcto(ctx, s.database, octo)
 	if err != nil {

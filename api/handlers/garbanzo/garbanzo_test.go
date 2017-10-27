@@ -20,6 +20,7 @@ import (
 )
 
 var _ = Describe("Garbanzo", func() {
+	const url = "/octos/kraken/garbanzos/"
 	var (
 		recorder    *httptest.ResponseRecorder
 		request     *http.Request
@@ -43,7 +44,7 @@ var _ = Describe("Garbanzo", func() {
 		Context("happy path", func() {
 			BeforeEach(func() {
 				var err error
-				request, err = http.NewRequest(http.MethodGet, "/garbanzos/"+apiUUID.String(), nil)
+				request, err = http.NewRequest(http.MethodGet, url+apiUUID.String(), nil)
 				Expect(err).NotTo(HaveOccurred())
 
 				mockService.FetchGarbanzoByAPIUUIDOutput.Garbanzo <- data.Garbanzo{
@@ -62,14 +63,10 @@ var _ = Describe("Garbanzo", func() {
 
 			It("returns the garbanzo in the body", func() {
 				Expect(recorder.Body).To(MatchJSON(fmt.Sprintf(`{
-					"data": {
-						"garbanzo": {
-							"link":        "http://here/garbanzos/%s",
-							"type":        "DESI",
-							"diameter-mm": 4.2
-						}
-					}
-				}`, apiUUID)))
+					"link":        "http://here%s%s",
+					"type":        "DESI",
+					"diameter-mm": 4.2
+				}`, url, apiUUID)))
 			})
 		})
 
@@ -77,7 +74,7 @@ var _ = Describe("Garbanzo", func() {
 			Context("invalid UUID", func() {
 				BeforeEach(func() {
 					var err error
-					request, err = http.NewRequest(http.MethodGet, "/garbanzos/not-a-uuid", nil)
+					request, err = http.NewRequest(http.MethodGet, url+"not-a-uuid", nil)
 					Expect(err).NotTo(HaveOccurred())
 
 					router.ServeHTTP(recorder, request)
@@ -99,7 +96,7 @@ var _ = Describe("Garbanzo", func() {
 			Context("persistence error", func() {
 				BeforeEach(func() {
 					var err error
-					request, err = http.NewRequest(http.MethodGet, "/garbanzos/"+apiUUID.String(), nil)
+					request, err = http.NewRequest(http.MethodGet, url+apiUUID.String(), nil)
 					Expect(err).NotTo(HaveOccurred())
 
 					mockService.FetchGarbanzoByAPIUUIDOutput.Garbanzo <- data.Garbanzo{}
@@ -124,7 +121,7 @@ var _ = Describe("Garbanzo", func() {
 			Context("not found error", func() {
 				BeforeEach(func() {
 					var err error
-					request, err = http.NewRequest(http.MethodGet, "/garbanzos/"+apiUUID.String(), nil)
+					request, err = http.NewRequest(http.MethodGet, url+apiUUID.String(), nil)
 					Expect(err).NotTo(HaveOccurred())
 
 					mockService.FetchGarbanzoByAPIUUIDOutput.Garbanzo <- data.Garbanzo{}
@@ -152,7 +149,7 @@ var _ = Describe("Garbanzo", func() {
 		Context("happy path", func() {
 			BeforeEach(func() {
 				var err error
-				request, err = http.NewRequest("DELETE", "/garbanzos/"+apiUUID.String(), nil)
+				request, err = http.NewRequest("DELETE", url+apiUUID.String(), nil)
 				Expect(err).NotTo(HaveOccurred())
 
 				mockService.DeleteGarbanzoByAPIUUIDOutput.Err <- nil
@@ -173,7 +170,7 @@ var _ = Describe("Garbanzo", func() {
 			Context("invalid UUID", func() {
 				BeforeEach(func() {
 					var err error
-					request, err = http.NewRequest(http.MethodDelete, "/garbanzos/not-a-uuid", nil)
+					request, err = http.NewRequest(http.MethodDelete, url+"not-a-uuid", nil)
 					Expect(err).NotTo(HaveOccurred())
 
 					router.ServeHTTP(recorder, request)
@@ -195,7 +192,7 @@ var _ = Describe("Garbanzo", func() {
 			Context("persistence error", func() {
 				BeforeEach(func() {
 					var err error
-					request, err = http.NewRequest(http.MethodDelete, "/garbanzos/"+apiUUID.String(), nil)
+					request, err = http.NewRequest(http.MethodDelete, url+apiUUID.String(), nil)
 					Expect(err).NotTo(HaveOccurred())
 
 					mockService.DeleteGarbanzoByAPIUUIDOutput.Err <- errors.New("bad stuff")
@@ -219,7 +216,7 @@ var _ = Describe("Garbanzo", func() {
 			Context("not found error", func() {
 				BeforeEach(func() {
 					var err error
-					request, err = http.NewRequest(http.MethodDelete, "/garbanzos/"+apiUUID.String(), nil)
+					request, err = http.NewRequest(http.MethodDelete, url+apiUUID.String(), nil)
 					Expect(err).NotTo(HaveOccurred())
 
 					mockService.DeleteGarbanzoByAPIUUIDOutput.Err <- persistence.ErrNotFound

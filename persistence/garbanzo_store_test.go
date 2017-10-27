@@ -16,6 +16,7 @@ var _ = Describe("GarbanzoStore Integration", func() {
 	var (
 		database persistence.Database
 		store    persistence.GarbanzoStore
+		octoId   int
 	)
 
 	BeforeEach(func() {
@@ -23,8 +24,12 @@ var _ = Describe("GarbanzoStore Integration", func() {
 		database, err = persistence.Open()
 		Expect(err).NotTo(HaveOccurred())
 
-		query := "delete from garbanzo"
-		_, err = database.ExecContext(ctx, query)
+		err = cleanDatabase(database)
+		Expect(err).NotTo(HaveOccurred())
+
+		octoId, err = persistence.OctoStore{}.CreateOcto(ctx, database, data.Octo{
+			Name: "test-octo",
+		})
 		Expect(err).NotTo(HaveOccurred())
 
 		store = persistence.GarbanzoStore{}
@@ -43,12 +48,14 @@ var _ = Describe("GarbanzoStore Integration", func() {
 			garbanzo1 := data.Garbanzo{
 				APIUUID:      apiUUID1,
 				GarbanzoType: data.DESI,
+				OctoId:       octoId,
 				DiameterMM:   4.2,
 			}
 			apiUUID2 := uuid.NewV4()
 			garbanzo2 := data.Garbanzo{
 				APIUUID:      apiUUID2,
 				GarbanzoType: data.KABULI,
+				OctoId:       octoId,
 				DiameterMM:   6.4,
 			}
 
@@ -65,11 +72,13 @@ var _ = Describe("GarbanzoStore Integration", func() {
 			Expect(garbanzos[0].Id).To(Equal(garbanzoId1))
 			Expect(garbanzos[0].APIUUID).To(Equal(apiUUID1))
 			Expect(garbanzos[0].GarbanzoType).To(Equal(data.DESI))
+			Expect(garbanzos[0].OctoId).To(Equal(octoId))
 			Expect(garbanzos[0].DiameterMM).To(BeNumerically("~", 4.2, 0.000001))
 
 			Expect(garbanzos[1].Id).To(Equal(garbanzoId2))
 			Expect(garbanzos[1].APIUUID).To(Equal(apiUUID2))
 			Expect(garbanzos[1].GarbanzoType).To(Equal(data.KABULI))
+			Expect(garbanzos[1].OctoId).To(Equal(octoId))
 			Expect(garbanzos[1].DiameterMM).To(BeNumerically("~", 6.4, 0.000001))
 		})
 	})
@@ -86,6 +95,7 @@ var _ = Describe("GarbanzoStore Integration", func() {
 			garbanzo := data.Garbanzo{
 				APIUUID:      apiUUID,
 				GarbanzoType: data.DESI,
+				OctoId:       octoId,
 				DiameterMM:   4.2,
 			}
 
@@ -97,6 +107,7 @@ var _ = Describe("GarbanzoStore Integration", func() {
 			Expect(fetchedGarbanzo.Id).To(Equal(garbanzoId))
 			Expect(fetchedGarbanzo.APIUUID).To(Equal(apiUUID))
 			Expect(fetchedGarbanzo.GarbanzoType).To(Equal(data.DESI))
+			Expect(fetchedGarbanzo.OctoId).To(Equal(octoId))
 			Expect(fetchedGarbanzo.DiameterMM).To(BeNumerically("~", 4.2, 0.000001))
 		})
 	})
@@ -107,6 +118,7 @@ var _ = Describe("GarbanzoStore Integration", func() {
 			garbanzo := data.Garbanzo{
 				APIUUID:      apiUUID,
 				GarbanzoType: data.DESI,
+				OctoId:       octoId,
 				DiameterMM:   4.2,
 			}
 
@@ -118,6 +130,7 @@ var _ = Describe("GarbanzoStore Integration", func() {
 			Expect(fetchedGarbanzo.Id).To(Equal(garbanzoId))
 			Expect(fetchedGarbanzo.APIUUID).To(Equal(apiUUID))
 			Expect(fetchedGarbanzo.GarbanzoType).To(Equal(data.DESI))
+			Expect(fetchedGarbanzo.OctoId).To(Equal(octoId))
 			Expect(fetchedGarbanzo.DiameterMM).To(BeNumerically("~", 4.2, 0.000001))
 		})
 
@@ -127,6 +140,7 @@ var _ = Describe("GarbanzoStore Integration", func() {
 				Id:           ignoredId,
 				APIUUID:      uuid.NewV4(),
 				GarbanzoType: data.DESI,
+				OctoId:       octoId,
 				DiameterMM:   4.2,
 			}
 
@@ -148,6 +162,7 @@ var _ = Describe("GarbanzoStore Integration", func() {
 			garbanzo := data.Garbanzo{
 				APIUUID:      apiUUID,
 				GarbanzoType: data.DESI,
+				OctoId:       octoId,
 				DiameterMM:   4.2,
 			}
 

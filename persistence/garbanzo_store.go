@@ -12,9 +12,9 @@ import (
 type GarbanzoStore struct{}
 
 func (GarbanzoStore) FetchAllGarbanzos(ctx context.Context, database Database) ([]data.Garbanzo, error) {
-	query := "select id, api_uuid, garbanzo_type_id, diameter_mm from garbanzo order by id"
+	query := "select id, api_uuid, garbanzo_type_id, octo_id, diameter_mm from garbanzo order by id"
 
-	rows, err := database.QueryContext(ctx, query)
+	rows, err := database.Query(ctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -24,9 +24,10 @@ func (GarbanzoStore) FetchAllGarbanzos(ctx context.Context, database Database) (
 	for rows.Next() {
 		var id int
 		var apiUUID uuid.UUID
-		var garbanzoTypeId data.GarbanzoType
+		var garbanzoType data.GarbanzoType
+		var octoId int
 		var diameterMM float32
-		err = rows.Scan(&id, &apiUUID, &garbanzoTypeId, &diameterMM)
+		err = rows.Scan(&id, &apiUUID, &garbanzoType, &octoId, &diameterMM)
 		if err != nil {
 			return nil, err
 		}
@@ -34,7 +35,8 @@ func (GarbanzoStore) FetchAllGarbanzos(ctx context.Context, database Database) (
 		garbanzo := data.Garbanzo{
 			Id:           id,
 			APIUUID:      apiUUID,
-			GarbanzoType: garbanzoTypeId,
+			GarbanzoType: garbanzoType,
+			OctoId:       octoId,
 			DiameterMM:   diameterMM,
 		}
 		garbanzos = append(garbanzos, garbanzo)
@@ -44,12 +46,13 @@ func (GarbanzoStore) FetchAllGarbanzos(ctx context.Context, database Database) (
 }
 
 func (GarbanzoStore) FetchGarbanzoByAPIUUID(ctx context.Context, database Database, apiUUID uuid.UUID) (data.Garbanzo, error) {
-	query := "select id, garbanzo_type_id, diameter_mm from garbanzo where api_uuid = $1"
+	query := "select id, garbanzo_type_id, octo_id, diameter_mm from garbanzo where api_uuid = $1"
 
 	var id int
-	var garbanzoTypeId data.GarbanzoType
+	var garbanzoType data.GarbanzoType
+	var octoId int
 	var diameterMM float32
-	err := database.QueryRowContext(ctx, query, apiUUID).Scan(&id, &garbanzoTypeId, &diameterMM)
+	err := database.QueryRow(ctx, query, apiUUID).Scan(&id, &garbanzoType, &octoId, &diameterMM)
 	if err == sql.ErrNoRows {
 		return data.Garbanzo{}, ErrNotFound
 	} else if err != nil {
@@ -59,14 +62,16 @@ func (GarbanzoStore) FetchGarbanzoByAPIUUID(ctx context.Context, database Databa
 	return data.Garbanzo{
 		Id:           id,
 		APIUUID:      apiUUID,
-		GarbanzoType: garbanzoTypeId,
+		GarbanzoType: garbanzoType,
+		OctoId:       octoId,
 		DiameterMM:   diameterMM,
 	}, nil
 }
 
 func (GarbanzoStore) CreateGarbanzo(ctx context.Context, database Database, garbanzo data.Garbanzo) (int, error) {
-	query := "insert into garbanzo (api_uuid, garbanzo_type_id, diameter_mm) values ($1, $2, $3) returning id"
-	return ExecInsert(ctx, database, query, garbanzo.APIUUID, garbanzo.GarbanzoType, garbanzo.DiameterMM)
+	query := "insert into garbanzo (api_uuid, garbanzo_type_id, octo_id, diameter_mm) " +
+		"values ($1, $2, $3, $4) returning id"
+	return ExecInsert(ctx, database, query, garbanzo.APIUUID, garbanzo.GarbanzoType, garbanzo.OctoId, garbanzo.DiameterMM)
 }
 
 func (GarbanzoStore) DeleteGarbanzoByAPIUUID(ctx context.Context, database Database, apiUUID uuid.UUID) error {

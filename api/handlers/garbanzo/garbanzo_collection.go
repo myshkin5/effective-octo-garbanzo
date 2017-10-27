@@ -2,7 +2,6 @@ package garbanzo
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -20,12 +19,12 @@ type garbanzoCollection struct {
 func MapCollectionRoutes(baseURL string, router *mux.Router, middleware alice.Chain, garbanzoService GarbanzoService) {
 	handler := &garbanzoCollection{
 		garbanzoService: garbanzoService,
-		baseURL:         baseURL + "garbanzos/",
+		baseURL:         baseURL,
 	}
 	methodHandler := make(handlers.MethodHandler)
 	methodHandler[http.MethodGet] = http.HandlerFunc(handler.get)
 	methodHandler[http.MethodPost] = http.HandlerFunc(handler.post)
-	router.Handle("/garbanzos", middleware.Then(methodHandler))
+	router.Handle("/octos/{octoName}/garbanzos", middleware.Then(methodHandler))
 }
 
 func (g *garbanzoCollection) get(w http.ResponseWriter, req *http.Request) {
@@ -37,14 +36,10 @@ func (g *garbanzoCollection) get(w http.ResponseWriter, req *http.Request) {
 
 	list := []Garbanzo{}
 	for _, garbanzo := range garbanzos {
-		list = append(list, fromPersistence(garbanzo, g.baseURL))
+		list = append(list, fromPersistence(garbanzo, g.baseURL, mux.Vars(req)["octoName"]))
 	}
 
-	handlers.Respond(w, http.StatusOK, handlers.JSONObject{
-		"data": handlers.JSONObject{
-			"garbanzos": list,
-		},
-	})
+	handlers.Respond(w, http.StatusOK, list)
 }
 
 func (g *garbanzoCollection) post(w http.ResponseWriter, req *http.Request) {
@@ -55,25 +50,17 @@ func (g *garbanzoCollection) post(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	garbanzoType, err := data.GarbanzoTypeFromString(dto.GarbanzoType)
-	if err != nil {
-		handlers.Error(w, fmt.Sprintf("Unknown garbanzo type: %s", dto.GarbanzoType), http.StatusBadRequest, err)
-		return
-	}
+	garbanzoType, _ /* TODO */ := data.GarbanzoTypeFromString(dto.GarbanzoType)
 
-	garbanzo, err := g.garbanzoService.CreateGarbanzo(req.Context(), data.Garbanzo{
+	octoName := mux.Vars(req)["octoName"]
+	garbanzo, err := g.garbanzoService.CreateGarbanzo(req.Context(), octoName, data.Garbanzo{
 		GarbanzoType: garbanzoType,
 		DiameterMM:   dto.DiameterMM,
 	})
 	if err != nil {
-		// TODO: Separate bad request issues from internal errors
 		handlers.Error(w, "Error creating new garbanzo", http.StatusInternalServerError, err)
 		return
 	}
 
-	handlers.Respond(w, http.StatusCreated, handlers.JSONObject{
-		"data": handlers.JSONObject{
-			"garbanzo": fromPersistence(garbanzo, g.baseURL),
-		},
-	})
+	handlers.Respond(w, http.StatusCreated, fromPersistence(garbanzo, g.baseURL, octoName))
 }

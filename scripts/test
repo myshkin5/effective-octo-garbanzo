@@ -30,9 +30,12 @@ stop-integration-services() {
     docker-compose --file scripts/postgres-docker-compose.yml down
 }
 
+DOCKER_STARTED=0
 error-trap() {
     echo -e "\033[1m\033[41m Failed!                                                                        \033[0m"
-    stop-integration-services
+    if [[ $DOCKER_STARTED == 1 ]] ; then
+        stop-integration-services
+    fi
 }
 
 trap 'error-trap' ERR
@@ -57,6 +60,7 @@ ginkgo -r --skip="$INTEGRATION_REGEXP" $GINKGO_OPTS
 echo -e "\033[1m\033[42m Integration tests...                                                           \033[0m"
 
 docker-compose --file ./scripts/postgres-docker-compose.yml up -d --force-recreate
+DOCKER_STARTED=1
 until PGPASSWORD=garbanzo-secret psql --port=5678 --host=0.0.0.0 --username=garbanzo --command='\l' > /dev/null 2>&1; do
   sleep 1
 done

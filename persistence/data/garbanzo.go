@@ -7,4 +7,5 @@ type Garbanzo struct {
 	APIUUID      uuid.UUID
 	GarbanzoType GarbanzoType
 	DiameterMM   float32
+	OctoId       int
 }

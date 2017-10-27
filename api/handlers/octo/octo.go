@@ -14,8 +14,9 @@ import (
 )
 
 type Octo struct {
-	Link string `json:"link"`
-	Name string `json:"name"`
+	Link      string `json:"link"`
+	Name      string `json:"name"`
+	Garbanzos string `json:"garbanzos"`
 }
 
 type OctoService interface {
@@ -54,11 +55,7 @@ func (g *octo) get(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	handlers.Respond(w, http.StatusOK, handlers.JSONObject{
-		"data": handlers.JSONObject{
-			"octo": fromPersistence(octo, g.baseURL),
-		},
-	})
+	handlers.Respond(w, http.StatusOK, fromPersistence(octo, g.baseURL))
 }
 
 func (g *octo) delete(w http.ResponseWriter, req *http.Request) {
@@ -78,8 +75,10 @@ func (g *octo) delete(w http.ResponseWriter, req *http.Request) {
 }
 
 func fromPersistence(octo data.Octo, baseURL string) Octo {
+	link := baseURL + octo.Name
 	return Octo{
-		Link: baseURL + octo.Name,
-		Name: octo.Name,
+		Link:      link,
+		Name:      octo.Name,
+		Garbanzos: link + "/garbanzos",
 	}
 }

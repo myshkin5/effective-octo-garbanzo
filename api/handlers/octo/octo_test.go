@@ -56,12 +56,9 @@ var _ = Describe("Octo", func() {
 
 			It("returns the octo in the body", func() {
 				Expect(recorder.Body).To(MatchJSON(`{
-					"data": {
-						"octo": {
-							"link": "http://here/octos/kraken",
-							"name": "kraken"
-						}
-					}
+					"link":      "http://here/octos/kraken",
+					"name":      "kraken",
+					"garbanzos": "http://here/octos/kraken/garbanzos"
 				}`))
 			})
 		})

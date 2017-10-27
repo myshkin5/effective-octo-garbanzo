@@ -16,5 +16,6 @@ create table garbanzo (
   id               serial   primary key,
   api_uuid         uuid     not null unique,
   garbanzo_type_id smallint not null references garbanzo_type(id),
+  octo_id          integer  not null references octo(id),
   diameter_mm      float    not null
 );
