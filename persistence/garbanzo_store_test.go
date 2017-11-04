@@ -24,8 +24,7 @@ var _ = Describe("GarbanzoStore Integration", func() {
 		database, err = persistence.Open()
 		Expect(err).NotTo(HaveOccurred())
 
-		err = cleanDatabase(database)
-		Expect(err).NotTo(HaveOccurred())
+		Expect(cleanDatabase(database)).To(Succeed())
 
 		octoId, err = persistence.OctoStore{}.CreateOcto(ctx, database, data.Octo{
 			Name: "test-octo",
@@ -169,8 +168,7 @@ var _ = Describe("GarbanzoStore Integration", func() {
 			_, err := store.CreateGarbanzo(ctx, database, garbanzo)
 			Expect(err).NotTo(HaveOccurred())
 
-			err = store.DeleteGarbanzoByAPIUUID(ctx, database, apiUUID)
-			Expect(err).NotTo(HaveOccurred())
+			Expect(store.DeleteGarbanzoByAPIUUID(ctx, database, apiUUID)).To(Succeed())
 
 			err = store.DeleteGarbanzoByAPIUUID(ctx, database, apiUUID)
 			Expect(err).To(Equal(persistence.ErrNotFound))

@@ -39,9 +39,9 @@ func (s *GarbanzoService) FetchGarbanzoByAPIUUID(ctx context.Context, apiUUID uu
 }
 
 func (s *GarbanzoService) CreateGarbanzo(ctx context.Context, octoName string, garbanzo data.Garbanzo) (garbanzoOut data.Garbanzo, err error) {
-	errors := validate(garbanzo)
-	if len(errors) > 0 {
-		return data.Garbanzo{}, NewValidationError(errors...)
+	err = validate(garbanzo)
+	if err != nil {
+		return data.Garbanzo{}, err
 	}
 
 	garbanzo.APIUUID = uuid.NewV4()
@@ -72,16 +72,26 @@ func (s *GarbanzoService) CreateGarbanzo(ctx context.Context, octoName string, g
 	return garbanzo, nil
 }
 
-func validate(garbanzo data.Garbanzo) []string {
-	var errors []string
+func validate(garbanzo data.Garbanzo) error {
+	errors := make(map[string][]string)
+	if garbanzo.GarbanzoType == 0 {
+		errors["GarbanzoType"] = append(errors["GarbanzoType"], "must be present")
+	}
 	if garbanzo.GarbanzoType != data.DESI && garbanzo.GarbanzoType != data.KABULI {
-		errors = append(errors, "'type' is required and must be either 'DESI' or 'KABULI'")
+		errors["GarbanzoType"] = append(errors["GarbanzoType"], "must be either 'DESI' or 'KABULI'")
+	}
+	if garbanzo.DiameterMM == 0.0 {
+		errors["DiameterMM"] = append(errors["DiameterMM"], "must be present")
 	}
 	if garbanzo.DiameterMM <= 0.0 {
-		errors = append(errors, "'diameter-mm' is required to be a positive decimal value")
+		errors["DiameterMM"] = append(errors["DiameterMM"], "must be a positive decimal value")
 	}
 
-	return errors
+	if len(errors) > 0 {
+		return NewValidationError(errors)
+	}
+
+	return nil
 }
 
 func (s *GarbanzoService) DeleteGarbanzoByAPIUUID(ctx context.Context, apiUUID uuid.UUID) error {

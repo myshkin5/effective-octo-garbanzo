@@ -30,7 +30,7 @@ func MapCollectionRoutes(baseURL string, router *mux.Router, middleware alice.Ch
 func (g *octoCollection) get(w http.ResponseWriter, req *http.Request) {
 	octos, err := g.octoService.FetchAllOctos(req.Context())
 	if err != nil {
-		handlers.Error(w, "Error fetching all octos", http.StatusInternalServerError, err)
+		handlers.Error(w, "Error fetching all octos", http.StatusInternalServerError, err, fieldMapping)
 		return
 	}
 
@@ -46,7 +46,7 @@ func (g *octoCollection) post(w http.ResponseWriter, req *http.Request) {
 	var dto Octo
 	err := json.NewDecoder(req.Body).Decode(&dto)
 	if err != nil {
-		handlers.Error(w, handlers.INVALID_JSON, http.StatusBadRequest, err)
+		handlers.Error(w, handlers.INVALID_JSON, http.StatusBadRequest, err, fieldMapping)
 		return
 	}
 
@@ -54,7 +54,7 @@ func (g *octoCollection) post(w http.ResponseWriter, req *http.Request) {
 		Name: dto.Name,
 	})
 	if err != nil {
-		handlers.Error(w, "Error creating new octo", http.StatusInternalServerError, err)
+		handlers.Error(w, "Error creating new octo", http.StatusInternalServerError, err, fieldMapping)
 		return
 	}
 

@@ -19,6 +19,12 @@ type Octo struct {
 	Garbanzos string `json:"garbanzos"`
 }
 
+var fieldMapping = map[string]string{
+	"Link":      "link",
+	"Name":      "name",
+	"Garbanzos": "garbanzos",
+}
+
 type OctoService interface {
 	FetchAllOctos(ctx context.Context) (octos []data.Octo, err error)
 	FetchOctoByName(ctx context.Context, name string) (octo data.Octo, err error)
@@ -48,10 +54,10 @@ func (g *octo) get(w http.ResponseWriter, req *http.Request) {
 
 	octo, err := g.octoService.FetchOctoByName(req.Context(), name)
 	if err == persistence.ErrNotFound {
-		handlers.Error(w, fmt.Sprintf("Octo %s not found", name), http.StatusNotFound, err)
+		handlers.Error(w, fmt.Sprintf("Octo %s not found", name), http.StatusNotFound, err, fieldMapping)
 		return
 	} else if err != nil {
-		handlers.Error(w, "Error fetching octo", http.StatusInternalServerError, err)
+		handlers.Error(w, "Error fetching octo", http.StatusInternalServerError, err, fieldMapping)
 		return
 	}
 
@@ -64,10 +70,10 @@ func (g *octo) delete(w http.ResponseWriter, req *http.Request) {
 
 	err := g.octoService.DeleteOctoByName(req.Context(), name)
 	if err == persistence.ErrNotFound {
-		handlers.Error(w, fmt.Sprintf("Octo %s not found", name), http.StatusNotFound, err)
+		handlers.Error(w, fmt.Sprintf("Octo %s not found", name), http.StatusNotFound, err, fieldMapping)
 		return
 	} else if err != nil {
-		handlers.Error(w, "Error fetching octo", http.StatusInternalServerError, err)
+		handlers.Error(w, "Error fetching octo", http.StatusInternalServerError, err, fieldMapping)
 		return
 	}
 

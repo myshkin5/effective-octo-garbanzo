@@ -20,6 +20,12 @@ type Garbanzo struct {
 	DiameterMM   float32 `json:"diameter-mm"`
 }
 
+var fieldMapping = map[string]string{
+	"Link":         "link",
+	"GarbanzoType": "type",
+	"DiameterMM":   "diameter-mm",
+}
+
 type GarbanzoService interface {
 	FetchAllGarbanzos(ctx context.Context) (garbanzos []data.Garbanzo, err error)
 	FetchGarbanzoByAPIUUID(ctx context.Context, apiUUID uuid.UUID) (garbanzo data.Garbanzo, err error)
@@ -47,16 +53,16 @@ func (g *garbanzo) get(w http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	apiUUID, err := uuid.FromString(vars["apiUUID"])
 	if err != nil {
-		handlers.Error(w, handlers.INVALID_UUID, http.StatusBadRequest, err)
+		handlers.Error(w, handlers.INVALID_UUID, http.StatusBadRequest, err, fieldMapping)
 		return
 	}
 
 	garbanzo, err := g.garbanzoService.FetchGarbanzoByAPIUUID(req.Context(), apiUUID)
 	if err == persistence.ErrNotFound {
-		handlers.Error(w, fmt.Sprintf("Garbanzo %s not found", apiUUID), http.StatusNotFound, err)
+		handlers.Error(w, fmt.Sprintf("Garbanzo %s not found", apiUUID), http.StatusNotFound, err, fieldMapping)
 		return
 	} else if err != nil {
-		handlers.Error(w, "Error fetching garbanzo", http.StatusInternalServerError, err)
+		handlers.Error(w, "Error fetching garbanzo", http.StatusInternalServerError, err, fieldMapping)
 		return
 	}
 
@@ -67,16 +73,16 @@ func (g *garbanzo) delete(w http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	apiUUID, err := uuid.FromString(vars["apiUUID"])
 	if err != nil {
-		handlers.Error(w, handlers.INVALID_UUID, http.StatusBadRequest, err)
+		handlers.Error(w, handlers.INVALID_UUID, http.StatusBadRequest, err, fieldMapping)
 		return
 	}
 
 	err = g.garbanzoService.DeleteGarbanzoByAPIUUID(req.Context(), apiUUID)
 	if err == persistence.ErrNotFound {
-		handlers.Error(w, fmt.Sprintf("Garbanzo %s not found", apiUUID), http.StatusNotFound, err)
+		handlers.Error(w, fmt.Sprintf("Garbanzo %s not found", apiUUID), http.StatusNotFound, err, fieldMapping)
 		return
 	} else if err != nil {
-		handlers.Error(w, "Error fetching garbanzo", http.StatusInternalServerError, err)
+		handlers.Error(w, "Error fetching garbanzo", http.StatusInternalServerError, err, fieldMapping)
 		return
 	}
 

@@ -86,8 +86,8 @@ var _ = Describe("Octo", func() {
 
 			actualOcto, actualErr := service.CreateOcto(ctx, octo)
 
+			Expect(actualErr).NotTo(HaveOccurred())
 			Expect(actualOcto.Id).To(Equal(octoId))
-			Expect(actualErr).To(BeNil())
 			Expect(actualOcto.Name).To(Equal("kraken"))
 
 			Expect(mockStore.CreateOctoCalled).To(HaveLen(1))
@@ -109,8 +109,26 @@ var _ = Describe("Octo", func() {
 			Expect(err).To(HaveOccurred())
 			validationErr, ok := err.(services.ValidationError)
 			Expect(ok).To(BeTrue())
-			Expect(validationErr.Errors()).To(HaveLen(1))
-			Expect(validationErr.Errors()[0]).To(Equal("'name' is required"))
+			errors := validationErr.Errors()
+			Expect(errors).To(HaveLen(1))
+			Expect(errors).To(Equal(map[string][]string{"Name": {
+				"must be present",
+				"must match regular expression '^[\\w-]+$'",
+			}}))
+		})
+
+		It("returns a validation error for an octo name with invalid characters", func() {
+			octo := data.Octo{
+				Name: " 283",
+			}
+
+			_, err := service.CreateOcto(ctx, octo)
+			Expect(err).To(HaveOccurred())
+			validationErr, ok := err.(services.ValidationError)
+			Expect(ok).To(BeTrue())
+			errors := validationErr.Errors()
+			Expect(errors).To(HaveLen(1))
+			Expect(errors).To(Equal(map[string][]string{"Name": {"must match regular expression '^[\\w-]+$'"}}))
 		})
 	})
 

@@ -2,6 +2,8 @@ package services
 
 import (
 	"context"
+	"fmt"
+	"regexp"
 
 	"github.com/myshkin5/effective-octo-garbanzo/persistence"
 	"github.com/myshkin5/effective-octo-garbanzo/persistence/data"
@@ -35,17 +37,34 @@ func (s *OctoService) FetchOctoByName(ctx context.Context, name string) (data.Oc
 }
 
 func (s *OctoService) CreateOcto(ctx context.Context, octo data.Octo) (data.Octo, error) {
-	if len(octo.Name) == 0 {
-		return data.Octo{}, NewValidationError("'name' is required")
+	err := s.validate(octo)
+	if err != nil {
+		return data.Octo{}, err
 	}
 
-	var err error
 	octo.Id, err = s.store.CreateOcto(ctx, s.database, octo)
 	if err != nil {
 		return data.Octo{}, err
 	}
 
 	return octo, nil
+}
+
+func (s *OctoService) validate(octo data.Octo) error {
+	errors := make(map[string][]string)
+	if len(octo.Name) == 0 {
+		errors["Name"] = append(errors["Name"], "must be present")
+	}
+	validName := regexp.MustCompile(`^[\w-]+$`)
+	if !validName.MatchString(octo.Name) {
+		errors["Name"] = append(errors["Name"], fmt.Sprintf("must match regular expression '%s'", validName.String()))
+	}
+
+	if len(errors) > 0 {
+		return NewValidationError(errors)
+	}
+
+	return nil
 }
 
 func (s *OctoService) DeleteOctoByName(ctx context.Context, name string) error {

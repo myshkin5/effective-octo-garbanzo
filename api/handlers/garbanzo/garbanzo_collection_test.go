@@ -14,6 +14,7 @@ import (
 	"github.com/satori/go.uuid"
 
 	"github.com/myshkin5/effective-octo-garbanzo/api/handlers/garbanzo"
+	"github.com/myshkin5/effective-octo-garbanzo/persistence"
 	"github.com/myshkin5/effective-octo-garbanzo/persistence/data"
 )
 
@@ -214,6 +215,7 @@ var _ = Describe("GarbanzoCollection", func() {
 				})
 			})
 
+			// TODO: resurrect?
 			//Context("invalid type", func() {
 			//	BeforeEach(func() {
 			//		var err error
@@ -240,7 +242,7 @@ var _ = Describe("GarbanzoCollection", func() {
 			//	})
 			//})
 
-			Context("persistence error", func() {
+			Context("general persistence error", func() {
 				BeforeEach(func() {
 					var err error
 					body := strings.NewReader(`{
@@ -265,6 +267,35 @@ var _ = Describe("GarbanzoCollection", func() {
 						"code": 500,
 						"error": "Error creating new garbanzo",
 						"status": "Internal Server Error"
+					}`))
+				})
+			})
+
+			Context("not found persistence error", func() {
+				BeforeEach(func() {
+					var err error
+					body := strings.NewReader(`{
+						"type":        "DESI",
+						"diameter-mm": 4.2
+					}`)
+					request, err = http.NewRequest(http.MethodPost, url, body)
+					Expect(err).NotTo(HaveOccurred())
+
+					mockService.CreateGarbanzoOutput.GarbanzoOut <- data.Garbanzo{}
+					mockService.CreateGarbanzoOutput.Err <- persistence.ErrNotFound
+
+					router.ServeHTTP(recorder, request)
+				})
+
+				It("returns an internal server error status code", func() {
+					Expect(recorder.Code).To(Equal(http.StatusConflict))
+				})
+
+				It("returns a JSON error", func() {
+					Expect(recorder.Body).To(MatchJSON(`{
+						"code": 409,
+						"error": "Error creating new garbanzo",
+						"status": "Conflict"
 					}`))
 				})
 			})

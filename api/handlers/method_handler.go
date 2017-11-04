@@ -33,7 +33,7 @@ func (h MethodHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		if req.Method == "OPTIONS" {
 			w.WriteHeader(http.StatusOK)
 		} else {
-			Error(w, "Method not allowed", http.StatusMethodNotAllowed, nil)
+			Error(w, "Method not allowed", http.StatusMethodNotAllowed, nil, nil)
 		}
 	}
 }

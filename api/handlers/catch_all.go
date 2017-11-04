@@ -14,7 +14,7 @@ func MapCatchAllRoutes(baseURL string, router *mux.Router, middleware alice.Chai
 func catchAll(baseURL string) func(w http.ResponseWriter, req *http.Request) {
 	return func(w http.ResponseWriter, req *http.Request) {
 		if req.Method != http.MethodGet || req.RequestURI != "/" {
-			Error(w, "Not Found", http.StatusNotFound, nil)
+			Error(w, "Not Found", http.StatusNotFound, nil, nil)
 			return
 		}
 

@@ -22,8 +22,7 @@ var _ = Describe("OctoStore Integration", func() {
 		database, err = persistence.Open()
 		Expect(err).NotTo(HaveOccurred())
 
-		err = cleanDatabase(database)
-		Expect(err).NotTo(HaveOccurred())
+		Expect(cleanDatabase(database)).To(Succeed())
 
 		store = persistence.OctoStore{}
 	})
@@ -127,8 +126,7 @@ var _ = Describe("OctoStore Integration", func() {
 			_, err := store.CreateOcto(ctx, database, octo)
 			Expect(err).NotTo(HaveOccurred())
 
-			err = store.DeleteOctoByName(ctx, database, "kraken")
-			Expect(err).NotTo(HaveOccurred())
+			Expect(store.DeleteOctoByName(ctx, database, "kraken")).To(Succeed())
 
 			err = store.DeleteOctoByName(ctx, database, "kraken")
 			Expect(err).To(Equal(persistence.ErrNotFound))

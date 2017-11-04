@@ -21,7 +21,7 @@ var _ = Describe("Error", func() {
 			recorder = httptest.NewRecorder()
 			recorder.Code = 0
 
-			handlers.Error(recorder, "bad stuff!", http.StatusInternalServerError, nil)
+			handlers.Error(recorder, "bad stuff!", http.StatusInternalServerError, nil, nil)
 		})
 
 		It("writes the error to a JSON body", func() {
@@ -38,14 +38,20 @@ var _ = Describe("Error", func() {
 			recorder = httptest.NewRecorder()
 			recorder.Code = 0
 
-			handlers.Error(recorder, "bad stuff!", http.StatusInternalServerError, services.NewValidationError("a", "b"))
+			err := services.NewValidationError(map[string][]string{
+				"FieldA": {"1", "2"},
+				"FieldB": {"3", "4"},
+				"FieldC": {"5", "6"},
+			})
+			mapping := map[string]string{"FieldA": "field-a", "FieldB": "field-b"}
+			handlers.Error(recorder, "bad stuff!", http.StatusInternalServerError, err, mapping)
 		})
 
 		It("writes the error to a JSON body", func() {
 			Expect(recorder.Body).To(MatchJSON(`{
 				"code":   400,
 				"error":  "bad stuff!",
-				"errors": ["a", "b"],
+				"errors": ["field-a 1", "field-a 2", "field-b 3", "field-b 4", "FieldC 5", "FieldC 6"],
 				"status": "Bad Request"
 			}`))
 		})

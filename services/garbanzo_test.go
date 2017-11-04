@@ -179,9 +179,30 @@ var _ = Describe("Garbanzo", func() {
 			Expect(err).To(HaveOccurred())
 			validationErr, ok := err.(services.ValidationError)
 			Expect(ok).To(BeTrue())
-			Expect(validationErr.Errors()).To(HaveLen(2))
-			Expect(validationErr.Errors()[0]).To(Equal("'type' is required and must be either 'DESI' or 'KABULI'"))
-			Expect(validationErr.Errors()[1]).To(Equal("'diameter-mm' is required to be a positive decimal value"))
+			errors := validationErr.Errors()
+			Expect(errors).To(HaveLen(2))
+			Expect(errors).To(Equal(map[string][]string{
+				"GarbanzoType": {"must be present", "must be either 'DESI' or 'KABULI'"},
+				"DiameterMM":   {"must be present", "must be a positive decimal value"},
+			}))
+		})
+
+		It("returns a validation error for invalid values", func() {
+			garbanzo := data.Garbanzo{
+				GarbanzoType: 1,
+				DiameterMM:   -1.2,
+			}
+
+			_, err := service.CreateGarbanzo(ctx, "kraken", garbanzo)
+			Expect(err).To(HaveOccurred())
+			validationErr, ok := err.(services.ValidationError)
+			Expect(ok).To(BeTrue())
+			errors := validationErr.Errors()
+			Expect(errors).To(HaveLen(2))
+			Expect(errors).To(Equal(map[string][]string{
+				"GarbanzoType": {"must be either 'DESI' or 'KABULI'"},
+				"DiameterMM":   {"must be a positive decimal value"},
+			}))
 		})
 	})
 
