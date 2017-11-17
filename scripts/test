@@ -40,6 +40,8 @@ error-trap() {
 
 trap 'error-trap' ERR
 
+find . -name \*.coverprofile -exec rm {} \;
+
 goimports -w $(ls | grep -Ev "LICENSE|README.md|vendor")
 
 INTEGRATION_REGEXP=".* Integration"
@@ -57,13 +59,14 @@ GINKGO_OPTS="-r
 echo -e "\033[1m\033[42m Unit tests...                                                                  \033[0m"
 ginkgo -r --skip="$INTEGRATION_REGEXP" $GINKGO_OPTS
 
+for FILE in $(find . -name \*.coverprofile) ; do
+    mv -f $FILE $(dirname $FILE)/$(basename $FILE .coverprofile)_unit.coverprofile
+done
+
 echo -e "\033[1m\033[42m Integration tests...                                                           \033[0m"
 
 docker-compose --file ./scripts/postgres-docker-compose.yml up -d --force-recreate
 DOCKER_STARTED=1
-until PGPASSWORD=garbanzo-secret psql --port=5678 --host=0.0.0.0 --username=garbanzo --command='\l' > /dev/null 2>&1; do
-  sleep 1
-done
 
 export DB_SERVER=localhost
 export DB_PORT=5678
@@ -77,3 +80,23 @@ ginkgo -r --focus="$INTEGRATION_REGEXP" $GINKGO_OPTS
 stop-integration-services
 
 echo -e "\033[1m\033[42m Completed successfully.                                                        \033[0m"
+
+rm -f _total.coverprofile 2> /dev/null
+for FILE in $(find . -name \*.coverprofile) ; do
+    tail -n +2 $FILE >> _total.coverprofile
+done
+
+echo 'mode: atomic' > total.coverprofile
+awk 'BEGIN { FS = " " }
+NF == 3 {
+        k = $1 " " $2;
+        if (k in block) block[k] += $3
+        else block[k] = $3
+}
+END {
+        for (k in block) {
+                print k, block[k]
+        }
+}' < _total.coverprofile >> total.coverprofile
+
+echo "Total coverage: $(go tool cover -func=total.coverprofile | tail -1 | awk '{ print $3 }')"
