@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"time"
 
 	_ "github.com/lib/pq"
 	"github.com/mattes/migrate"
@@ -41,6 +42,8 @@ func Open() (Database, error) {
 	}
 
 	db.SetMaxOpenConns(maxOpenConns)
+
+	verifyConnection(db)
 
 	return &database{
 		internalDB: db,
@@ -78,6 +81,21 @@ func ExecDelete(ctx context.Context, database Database, query string, args ...in
 	return nil
 }
 
+func verifyConnection(db *sql.DB) {
+	query := "select 1"
+	for {
+		for i := 0; i < 20; i++ {
+			_, err := db.Query(query)
+			if err == nil {
+				return
+			}
+
+			time.Sleep(1 * time.Second)
+		}
+		logs.Logger.Warn("Could not connect to database. Continuing to try...")
+	}
+}
+
 type migrateLogger struct{}
 
 func (l migrateLogger) Printf(format string, v ...interface{}) {
@@ -91,6 +109,12 @@ func (l migrateLogger) Verbose() bool {
 func Migrate() error {
 	sourceURL := GetEnvWithDefault("DB_SOURCE_URL", "file://./persistence/ddl")
 	databaseURL := getDatabaseURL()
+
+	// Open() verifies that the database is up and running
+	_, err := Open()
+	if err != nil {
+		return err
+	}
 
 	migrator, err := migrate.New(sourceURL, databaseURL)
 	if err != nil {
