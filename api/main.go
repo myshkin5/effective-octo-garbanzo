@@ -53,11 +53,19 @@ func initDatabase() persistence.Database {
 	return database
 }
 
+type loggingWriter struct{}
+
+func (w loggingWriter) Write(p []byte) (int, error) {
+	n := len(p)
+	logs.Logger.Info(string(p[:n-1]))
+	return n, nil
+}
+
 func initRoutes(port string, octoService *services.OctoService, garbanzoService *services.GarbanzoService) *mux.Router {
 	router := mux.NewRouter()
 
 	loggingHandler := func(handler http.Handler) http.Handler {
-		return gorilla_handlers.LoggingHandler(os.Stdout, handler)
+		return gorilla_handlers.LoggingHandler(loggingWriter{}, handler)
 	}
 	headersHandler := api_middleware.StandardHeadersHandler
 
@@ -87,6 +95,6 @@ func listenAndServe(port string, router *mux.Router) {
 	logs.Logger.Infof("Listening on %s:%s...", serverAddr, port)
 	err := http.ListenAndServe(serverAddr+":"+port, router)
 	if err != nil {
-		logs.Logger.Critical("ListenAndServe:", err)
+		logs.Logger.Panic("ListenAndServe:", err)
 	}
 }

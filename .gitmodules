@@ -25,3 +25,12 @@
 [submodule "vendor/github.com/satori/go.uuid"]
 	path = vendor/github.com/satori/go.uuid
 	url = https://github.com/satori/go.uuid.git
+[submodule "vendor/github.com/sirupsen/logrus"]
+	path = vendor/github.com/sirupsen/logrus
+	url = https://github.com/sirupsen/logrus.git
+[submodule "vendor/golang.org/x/crypto"]
+	path = vendor/golang.org/x/crypto
+	url = https://github.com/golang/crypto.git
+[submodule "vendor/golang.org/x/sys"]
+	path = vendor/golang.org/x/sys
+	url = https://github.com/golang/sys.git

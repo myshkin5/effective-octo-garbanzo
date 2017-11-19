@@ -3,37 +3,56 @@ package logs
 import (
 	"os"
 
-	"github.com/op/go-logging"
+	"github.com/sirupsen/logrus"
 )
 
 var (
-	Logger   *logging.Logger
-	LogLevel logging.LeveledBackend
+	Logger ExternalLogger
 )
 
+type ExternalLogger interface {
+	Errorf(format string, args ...interface{})
+	Info(args ...interface{})
+	Infof(format string, args ...interface{})
+	Panic(args ...interface{})
+	Warn(args ...interface{})
+}
+
 func init() {
-	Logger = logging.MustGetLogger("go-toccata")
-	format := logging.MustStringFormatter("%{time:2006-01-02T15:04:05.000000Z} %{level} %{message}")
-	backend := logging.NewLogBackend(os.Stdout, "", 0)
-	backendFormatter := logging.NewBackendFormatter(backend, format)
-	LogLevel = logging.AddModuleLevel(backendFormatter)
-	logging.SetBackend(LogLevel)
+	Logger = logrus.WithFields(logrus.Fields{
+		"service_name": "effective-octo-garbanzo",
+	})
+	logrus.SetFormatter(&JSONFormatter{
+		FieldMap: FieldMap{
+			FieldKeyTime:  "@timestamp",
+			FieldKeyLevel: "priority",
+			FieldKeyMsg:   "@message",
+		},
+		LevelMap: LevelMap{
+			logrus.PanicLevel: "PANIC",
+			logrus.FatalLevel: "FATAL",
+			logrus.ErrorLevel: "ERROR",
+			logrus.WarnLevel:  "WARN",
+			logrus.InfoLevel:  "INFO",
+			logrus.DebugLevel: "DEBUG",
+		},
+	})
 	// Default to no logging for quiet tests
-	LogLevel.SetLevel(-1, "")
+	logrus.SetLevel(logrus.PanicLevel)
 }
 
 func Init() error {
 	logLevel := os.Getenv("LOG_LEVEL")
 	if logLevel == "" {
-		logLevel = "INFO"
+		logLevel = "info"
 	}
 
-	level, err := logging.LogLevel(logLevel)
+	level, err := logrus.ParseLevel(logLevel)
 	if err != nil {
 		return err
 	}
 
-	LogLevel.SetLevel(level, "")
+	logrus.SetLevel(level)
 
 	return nil
 }
