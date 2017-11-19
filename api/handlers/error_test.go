@@ -1,6 +1,7 @@
 package handlers_test
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 
@@ -48,12 +49,23 @@ var _ = Describe("Error", func() {
 		})
 
 		It("writes the error to a JSON body", func() {
-			Expect(recorder.Body).To(MatchJSON(`{
-				"code":   400,
-				"error":  "bad stuff!",
-				"errors": ["field-a 1", "field-a 2", "field-b 3", "field-b 4", "FieldC 5", "FieldC 6"],
-				"status": "Bad Request"
-			}`))
+			// The errors are in an unordered array so we can't just MatchJSON()
+			jsonObj := handlers.JSONObject{}
+			err := json.NewDecoder(recorder.Body).Decode(&jsonObj)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(jsonObj["code"]).To(BeEquivalentTo(400))
+			Expect(jsonObj["error"]).To(Equal("bad stuff!"))
+			Expect(jsonObj["status"]).To(Equal("Bad Request"))
+
+			errors, ok := jsonObj["errors"].([]interface{})
+			Expect(ok).To(BeTrue())
+			Expect(errors).To(ContainElement("field-a 1"))
+			Expect(errors).To(ContainElement("field-a 2"))
+			Expect(errors).To(ContainElement("field-b 3"))
+			Expect(errors).To(ContainElement("field-b 4"))
+			Expect(errors).To(ContainElement("FieldC 5"))
+			Expect(errors).To(ContainElement("FieldC 6"))
 		})
 	})
 })
