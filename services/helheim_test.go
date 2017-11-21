@@ -54,6 +54,15 @@ type mockGarbanzoStore struct {
 	DeleteByAPIUUIDOutput struct {
 		Err chan error
 	}
+	DeleteByOctoNameCalled chan bool
+	DeleteByOctoNameInput  struct {
+		Ctx      chan context.Context
+		Database chan persistence.Database
+		OctoName chan string
+	}
+	DeleteByOctoNameOutput struct {
+		Err chan error
+	}
 }
 
 func newMockGarbanzoStore() *mockGarbanzoStore {
@@ -80,6 +89,11 @@ func newMockGarbanzoStore() *mockGarbanzoStore {
 	m.DeleteByAPIUUIDInput.Database = make(chan persistence.Database, 100)
 	m.DeleteByAPIUUIDInput.ApiUUID = make(chan uuid.UUID, 100)
 	m.DeleteByAPIUUIDOutput.Err = make(chan error, 100)
+	m.DeleteByOctoNameCalled = make(chan bool, 100)
+	m.DeleteByOctoNameInput.Ctx = make(chan context.Context, 100)
+	m.DeleteByOctoNameInput.Database = make(chan persistence.Database, 100)
+	m.DeleteByOctoNameInput.OctoName = make(chan string, 100)
+	m.DeleteByOctoNameOutput.Err = make(chan error, 100)
 	return m
 }
 func (m *mockGarbanzoStore) FetchAll(ctx context.Context, database persistence.Database) (garbanzos []data.Garbanzo, err error) {
@@ -108,6 +122,13 @@ func (m *mockGarbanzoStore) DeleteByAPIUUID(ctx context.Context, database persis
 	m.DeleteByAPIUUIDInput.Database <- database
 	m.DeleteByAPIUUIDInput.ApiUUID <- apiUUID
 	return <-m.DeleteByAPIUUIDOutput.Err
+}
+func (m *mockGarbanzoStore) DeleteByOctoName(ctx context.Context, database persistence.Database, octoName string) (err error) {
+	m.DeleteByOctoNameCalled <- true
+	m.DeleteByOctoNameInput.Ctx <- ctx
+	m.DeleteByOctoNameInput.Database <- database
+	m.DeleteByOctoNameInput.OctoName <- octoName
+	return <-m.DeleteByOctoNameOutput.Err
 }
 
 type mockOctoStore struct {
@@ -203,61 +224,6 @@ func (m *mockOctoStore) DeleteByName(ctx context.Context, database persistence.D
 	m.DeleteByNameInput.Database <- database
 	m.DeleteByNameInput.Name <- name
 	return <-m.DeleteByNameOutput.Err
-}
-
-type mockContext struct {
-	DeadlineCalled chan bool
-	DeadlineOutput struct {
-		Deadline chan time.Time
-		Ok       chan bool
-	}
-	DoneCalled chan bool
-	DoneOutput struct {
-		Ret0 chan (<-chan struct{})
-	}
-	ErrCalled chan bool
-	ErrOutput struct {
-		Ret0 chan error
-	}
-	ValueCalled chan bool
-	ValueInput  struct {
-		Key chan interface{}
-	}
-	ValueOutput struct {
-		Ret0 chan interface{}
-	}
-}
-
-func newMockContext() *mockContext {
-	m := &mockContext{}
-	m.DeadlineCalled = make(chan bool, 100)
-	m.DeadlineOutput.Deadline = make(chan time.Time, 100)
-	m.DeadlineOutput.Ok = make(chan bool, 100)
-	m.DoneCalled = make(chan bool, 100)
-	m.DoneOutput.Ret0 = make(chan (<-chan struct{}), 100)
-	m.ErrCalled = make(chan bool, 100)
-	m.ErrOutput.Ret0 = make(chan error, 100)
-	m.ValueCalled = make(chan bool, 100)
-	m.ValueInput.Key = make(chan interface{}, 100)
-	m.ValueOutput.Ret0 = make(chan interface{}, 100)
-	return m
-}
-func (m *mockContext) Deadline() (deadline time.Time, ok bool) {
-	m.DeadlineCalled <- true
-	return <-m.DeadlineOutput.Deadline, <-m.DeadlineOutput.Ok
-}
-func (m *mockContext) Done() <-chan struct{} {
-	m.DoneCalled <- true
-	return <-m.DoneOutput.Ret0
-}
-func (m *mockContext) Err() error {
-	m.ErrCalled <- true
-	return <-m.ErrOutput.Ret0
-}
-func (m *mockContext) Value(key interface{}) interface{} {
-	m.ValueCalled <- true
-	m.ValueInput.Key <- key
-	return <-m.ValueOutput.Ret0
 }
 
 type mockDatabase struct {
@@ -370,4 +336,59 @@ func (m *mockDatabase) Commit() (err error) {
 func (m *mockDatabase) Rollback() (err error) {
 	m.RollbackCalled <- true
 	return <-m.RollbackOutput.Err
+}
+
+type mockContext struct {
+	DeadlineCalled chan bool
+	DeadlineOutput struct {
+		Deadline chan time.Time
+		Ok       chan bool
+	}
+	DoneCalled chan bool
+	DoneOutput struct {
+		Ret0 chan (<-chan struct{})
+	}
+	ErrCalled chan bool
+	ErrOutput struct {
+		Ret0 chan error
+	}
+	ValueCalled chan bool
+	ValueInput  struct {
+		Key chan interface{}
+	}
+	ValueOutput struct {
+		Ret0 chan interface{}
+	}
+}
+
+func newMockContext() *mockContext {
+	m := &mockContext{}
+	m.DeadlineCalled = make(chan bool, 100)
+	m.DeadlineOutput.Deadline = make(chan time.Time, 100)
+	m.DeadlineOutput.Ok = make(chan bool, 100)
+	m.DoneCalled = make(chan bool, 100)
+	m.DoneOutput.Ret0 = make(chan (<-chan struct{}), 100)
+	m.ErrCalled = make(chan bool, 100)
+	m.ErrOutput.Ret0 = make(chan error, 100)
+	m.ValueCalled = make(chan bool, 100)
+	m.ValueInput.Key = make(chan interface{}, 100)
+	m.ValueOutput.Ret0 = make(chan interface{}, 100)
+	return m
+}
+func (m *mockContext) Deadline() (deadline time.Time, ok bool) {
+	m.DeadlineCalled <- true
+	return <-m.DeadlineOutput.Deadline, <-m.DeadlineOutput.Ok
+}
+func (m *mockContext) Done() <-chan struct{} {
+	m.DoneCalled <- true
+	return <-m.DoneOutput.Ret0
+}
+func (m *mockContext) Err() error {
+	m.ErrCalled <- true
+	return <-m.ErrOutput.Ret0
+}
+func (m *mockContext) Value(key interface{}) interface{} {
+	m.ValueCalled <- true
+	m.ValueInput.Key <- key
+	return <-m.ValueOutput.Ret0
 }

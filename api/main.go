@@ -24,7 +24,7 @@ func main() {
 	database := initDatabase()
 
 	garbanzoService := services.NewGarbanzoService(persistence.OctoStore{}, persistence.GarbanzoStore{}, database)
-	octoService := services.NewOctoService(persistence.OctoStore{}, database)
+	octoService := services.NewOctoService(persistence.OctoStore{}, persistence.GarbanzoStore{}, database)
 
 	port := persistence.GetEnvWithDefault("PORT", "8080")
 	router := initRoutes(port, octoService, garbanzoService)

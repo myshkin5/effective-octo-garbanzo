@@ -8,7 +8,6 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
 	"github.com/satori/go.uuid"
 
 	"github.com/myshkin5/effective-octo-garbanzo/persistence"

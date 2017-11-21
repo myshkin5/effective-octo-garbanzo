@@ -13,10 +13,15 @@ import (
 
 var _ = Describe("GarbanzoStore Integration", func() {
 	ctx := context.Background()
+	const (
+		octoName = "test-octo"
+	)
+
 	var (
-		database persistence.Database
-		store    persistence.GarbanzoStore
-		octoId   int
+		database    persistence.Database
+		store       persistence.GarbanzoStore
+		octoId      int
+		otherOctoId int
 	)
 
 	BeforeEach(func() {
@@ -27,7 +32,12 @@ var _ = Describe("GarbanzoStore Integration", func() {
 		Expect(cleanDatabase(database)).To(Succeed())
 
 		octoId, err = persistence.OctoStore{}.Create(ctx, database, data.Octo{
-			Name: "test-octo",
+			Name: octoName,
+		})
+		Expect(err).NotTo(HaveOccurred())
+
+		otherOctoId, err = persistence.OctoStore{}.Create(ctx, database, data.Octo{
+			Name: "test-octo-2",
 		})
 		Expect(err).NotTo(HaveOccurred())
 
@@ -172,6 +182,54 @@ var _ = Describe("GarbanzoStore Integration", func() {
 
 			err = store.DeleteByAPIUUID(ctx, database, apiUUID)
 			Expect(err).To(Equal(persistence.ErrNotFound))
+		})
+	})
+
+	Describe("DeleteByOctoName", func() {
+		It("returns no error when attempting to delete garbanzos from an unknown octo", func() {
+			Expect(store.DeleteByOctoName(ctx, database, "never-heard-of-it")).To(Succeed())
+		})
+
+		It("returns no error when attempting to delete garbanzos from an octo with no garbanzos", func() {
+			Expect(store.DeleteByOctoName(ctx, database, octoName)).To(Succeed())
+		})
+
+		It("deletes some garbanzos", func() {
+			apiUUID1 := uuid.NewV4()
+			garbanzo1 := data.Garbanzo{
+				APIUUID:      apiUUID1,
+				GarbanzoType: data.DESI,
+				OctoId:       octoId,
+				DiameterMM:   4.2,
+			}
+			apiUUID2 := uuid.NewV4()
+			garbanzo2 := data.Garbanzo{
+				APIUUID:      apiUUID2,
+				GarbanzoType: data.KABULI,
+				OctoId:       octoId,
+				DiameterMM:   3.8,
+			}
+			apiUUID3 := uuid.NewV4()
+			garbanzo3 := data.Garbanzo{
+				APIUUID:      apiUUID3,
+				GarbanzoType: data.DESI,
+				OctoId:       otherOctoId,
+				DiameterMM:   5.6,
+			}
+
+			_, err := store.Create(ctx, database, garbanzo1)
+			Expect(err).NotTo(HaveOccurred())
+			_, err = store.Create(ctx, database, garbanzo2)
+			Expect(err).NotTo(HaveOccurred())
+			octoId3, err := store.Create(ctx, database, garbanzo3)
+			Expect(err).NotTo(HaveOccurred())
+			garbanzo3.Id = octoId3
+
+			Expect(store.DeleteByOctoName(ctx, database, octoName)).To(Succeed())
+
+			garbanzos, err := store.FetchAll(ctx, database)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(garbanzos).To(Equal([]data.Garbanzo{garbanzo3}))
 		})
 	})
 })

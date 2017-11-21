@@ -61,24 +61,13 @@ func ExecInsert(ctx context.Context, database Database, query string, args ...in
 	return id, nil
 }
 
-func ExecDelete(ctx context.Context, database Database, query string, args ...interface{}) error {
+func ExecDelete(ctx context.Context, database Database, query string, args ...interface{}) (int64, error) {
 	result, err := database.Exec(ctx, query, args...)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-
-	if rowsAffected == 0 {
-		return ErrNotFound
-	} else if rowsAffected > 1 {
-		logs.Logger.Panic("Deleted multiple rows when expecting only one")
-	}
-
-	return nil
+	return result.RowsAffected()
 }
 
 func verifyConnection(db *sql.DB) {

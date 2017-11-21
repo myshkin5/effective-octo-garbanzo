@@ -17,23 +17,25 @@ type OctoStore interface {
 }
 
 type OctoService struct {
-	store    OctoStore
-	database persistence.Database
+	octoStore     OctoStore
+	garbanzoStore GarbanzoStore
+	database      persistence.Database
 }
 
-func NewOctoService(store OctoStore, database persistence.Database) *OctoService {
+func NewOctoService(octoStore OctoStore, garbanzoStore GarbanzoStore, database persistence.Database) *OctoService {
 	return &OctoService{
-		store:    store,
-		database: database,
+		octoStore:     octoStore,
+		garbanzoStore: garbanzoStore,
+		database:      database,
 	}
 }
 
 func (s *OctoService) FetchAll(ctx context.Context) ([]data.Octo, error) {
-	return s.store.FetchAll(ctx, s.database)
+	return s.octoStore.FetchAll(ctx, s.database)
 }
 
 func (s *OctoService) FetchByName(ctx context.Context, name string) (data.Octo, error) {
-	return s.store.FetchByName(ctx, s.database, name)
+	return s.octoStore.FetchByName(ctx, s.database, name)
 }
 
 func (s *OctoService) Create(ctx context.Context, octo data.Octo) (data.Octo, error) {
@@ -42,7 +44,7 @@ func (s *OctoService) Create(ctx context.Context, octo data.Octo) (data.Octo, er
 		return data.Octo{}, err
 	}
 
-	octo.Id, err = s.store.Create(ctx, s.database, octo)
+	octo.Id, err = s.octoStore.Create(ctx, s.database, octo)
 	if err != nil {
 		return data.Octo{}, err
 	}
@@ -68,5 +70,27 @@ func (s *OctoService) validate(octo data.Octo) error {
 }
 
 func (s *OctoService) DeleteByName(ctx context.Context, name string) error {
-	return s.store.DeleteByName(ctx, s.database, name)
+	database, err := s.database.BeginTx(ctx)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			database.Rollback()
+			return
+		}
+		err = database.Commit()
+	}()
+
+	err = s.garbanzoStore.DeleteByOctoName(ctx, database, name)
+	if err != nil {
+		return err
+	}
+
+	err = s.octoStore.DeleteByName(ctx, database, name)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

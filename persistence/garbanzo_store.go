@@ -6,6 +6,7 @@ import (
 
 	"github.com/satori/go.uuid"
 
+	"github.com/myshkin5/effective-octo-garbanzo/logs"
 	"github.com/myshkin5/effective-octo-garbanzo/persistence/data"
 )
 
@@ -76,5 +77,26 @@ func (GarbanzoStore) Create(ctx context.Context, database Database, garbanzo dat
 
 func (GarbanzoStore) DeleteByAPIUUID(ctx context.Context, database Database, apiUUID uuid.UUID) error {
 	query := "delete from garbanzo where api_uuid = $1"
-	return ExecDelete(ctx, database, query, apiUUID)
+	rowsAffected, err := ExecDelete(ctx, database, query, apiUUID)
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return ErrNotFound
+	} else if rowsAffected > 1 {
+		logs.Logger.Panic("Deleted multiple rows when expecting only one")
+	}
+
+	return nil
+}
+
+func (GarbanzoStore) DeleteByOctoName(ctx context.Context, database Database, octoName string) error {
+	query := "delete from garbanzo where octo_id = (select id from octo where name = $1)"
+	_, err := ExecDelete(ctx, database, query, octoName)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
