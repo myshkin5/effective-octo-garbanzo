@@ -26,10 +26,10 @@ var fieldMapping = map[string]string{
 }
 
 type OctoService interface {
-	FetchAllOctos(ctx context.Context) (octos []data.Octo, err error)
-	FetchOctoByName(ctx context.Context, name string) (octo data.Octo, err error)
-	CreateOcto(ctx context.Context, octoIn data.Octo) (octoOut data.Octo, err error)
-	DeleteOctoByName(ctx context.Context, name string) (err error)
+	FetchAll(ctx context.Context) (octos []data.Octo, err error)
+	FetchByName(ctx context.Context, name string) (octo data.Octo, err error)
+	Create(ctx context.Context, octoIn data.Octo) (octoOut data.Octo, err error)
+	DeleteByName(ctx context.Context, name string) (err error)
 }
 
 type octo struct {
@@ -52,7 +52,7 @@ func (g *octo) get(w http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	name := vars["name"]
 
-	octo, err := g.octoService.FetchOctoByName(req.Context(), name)
+	octo, err := g.octoService.FetchByName(req.Context(), name)
 	if err == persistence.ErrNotFound {
 		handlers.Error(w, fmt.Sprintf("Octo %s not found", name), http.StatusNotFound, err, fieldMapping)
 		return
@@ -68,7 +68,7 @@ func (g *octo) delete(w http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	name := vars["name"]
 
-	err := g.octoService.DeleteOctoByName(req.Context(), name)
+	err := g.octoService.DeleteByName(req.Context(), name)
 	if err == persistence.ErrNotFound {
 		handlers.Error(w, fmt.Sprintf("Octo %s not found", name), http.StatusNotFound, err, fieldMapping)
 		return

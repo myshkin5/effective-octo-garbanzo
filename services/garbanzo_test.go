@@ -38,21 +38,21 @@ var _ = Describe("Garbanzo", func() {
 
 	It("fetches all garbanzos", func() {
 		var garbanzos []data.Garbanzo
-		mockGarbanzoStore.FetchAllGarbanzosOutput.Garbanzos <- garbanzos
+		mockGarbanzoStore.FetchAllOutput.Garbanzos <- garbanzos
 		err := errors.New("some error")
-		mockGarbanzoStore.FetchAllGarbanzosOutput.Err <- err
+		mockGarbanzoStore.FetchAllOutput.Err <- err
 
-		actualGarbanzos, actualErr := service.FetchAllGarbanzos(ctx)
+		actualGarbanzos, actualErr := service.FetchAll(ctx)
 
 		Expect(actualGarbanzos).To(Equal(garbanzos))
 		Expect(actualErr).To(Equal(err))
 
-		Expect(mockGarbanzoStore.FetchAllGarbanzosCalled).To(HaveLen(1))
+		Expect(mockGarbanzoStore.FetchAllCalled).To(HaveLen(1))
 		var actualDB persistence.Database
-		Expect(mockGarbanzoStore.FetchAllGarbanzosInput.Database).To(Receive(&actualDB))
+		Expect(mockGarbanzoStore.FetchAllInput.Database).To(Receive(&actualDB))
 		Expect(actualDB).To(Equal(mockDB))
 		var actualCtx context.Context
-		Expect(mockGarbanzoStore.FetchAllGarbanzosInput.Ctx).To(Receive(&actualCtx))
+		Expect(mockGarbanzoStore.FetchAllInput.Ctx).To(Receive(&actualCtx))
 		Expect(actualCtx).To(Equal(ctx))
 	})
 
@@ -60,42 +60,42 @@ var _ = Describe("Garbanzo", func() {
 		garbanzo := data.Garbanzo{
 			GarbanzoType: data.DESI,
 		}
-		mockGarbanzoStore.FetchGarbanzoByAPIUUIDOutput.Garbanzo <- garbanzo
+		mockGarbanzoStore.FetchByAPIUUIDOutput.Garbanzo <- garbanzo
 		err := errors.New("some error")
-		mockGarbanzoStore.FetchGarbanzoByAPIUUIDOutput.Err <- err
+		mockGarbanzoStore.FetchByAPIUUIDOutput.Err <- err
 		apiUUID := uuid.NewV4()
 
-		actualGarbanzo, actualErr := service.FetchGarbanzoByAPIUUID(ctx, apiUUID)
+		actualGarbanzo, actualErr := service.FetchByAPIUUID(ctx, apiUUID)
 
 		Expect(actualGarbanzo).To(Equal(garbanzo))
 		Expect(actualErr).To(Equal(err))
 
-		Expect(mockGarbanzoStore.FetchGarbanzoByAPIUUIDCalled).To(HaveLen(1))
+		Expect(mockGarbanzoStore.FetchByAPIUUIDCalled).To(HaveLen(1))
 		var actualDB persistence.Database
-		Expect(mockGarbanzoStore.FetchGarbanzoByAPIUUIDInput.Database).To(Receive(&actualDB))
+		Expect(mockGarbanzoStore.FetchByAPIUUIDInput.Database).To(Receive(&actualDB))
 		Expect(actualDB).To(Equal(mockDB))
 		var actualCtx context.Context
-		Expect(mockGarbanzoStore.FetchGarbanzoByAPIUUIDInput.Ctx).To(Receive(&actualCtx))
+		Expect(mockGarbanzoStore.FetchByAPIUUIDInput.Ctx).To(Receive(&actualCtx))
 		Expect(actualCtx).To(Equal(ctx))
 		var actualAPIUUID uuid.UUID
-		Expect(mockGarbanzoStore.FetchGarbanzoByAPIUUIDInput.ApiUUID).To(Receive(&actualAPIUUID))
+		Expect(mockGarbanzoStore.FetchByAPIUUIDInput.ApiUUID).To(Receive(&actualAPIUUID))
 		Expect(actualAPIUUID).To(Equal(apiUUID))
 	})
 
-	Describe("CreateGarbanzo", func() {
+	Describe("Create", func() {
 		It("creates a garbanzo", func() {
 			mockDB.BeginTxOutput.Database <- mockTx
 			mockDB.BeginTxOutput.Err <- nil
 
 			octoId := 77
-			mockOctoStore.FetchOctoByNameOutput.Octo <- data.Octo{
+			mockOctoStore.FetchByNameOutput.Octo <- data.Octo{
 				Id: octoId,
 			}
-			mockOctoStore.FetchOctoByNameOutput.Err <- nil
+			mockOctoStore.FetchByNameOutput.Err <- nil
 
 			garbanzoId := 42
-			mockGarbanzoStore.CreateGarbanzoOutput.GarbanzoId <- garbanzoId
-			mockGarbanzoStore.CreateGarbanzoOutput.Err <- nil
+			mockGarbanzoStore.CreateOutput.GarbanzoId <- garbanzoId
+			mockGarbanzoStore.CreateOutput.Err <- nil
 
 			mockTx.CommitOutput.Err <- nil
 
@@ -104,7 +104,7 @@ var _ = Describe("Garbanzo", func() {
 				DiameterMM:   0.1,
 			}
 			octoName := "kraken"
-			actualGarbanzo, actualErr := service.CreateGarbanzo(ctx, octoName, garbanzo)
+			actualGarbanzo, actualErr := service.Create(ctx, octoName, garbanzo)
 
 			Expect(actualErr).To(BeNil())
 			Expect(actualGarbanzo.Id).To(Equal(garbanzoId))
@@ -113,24 +113,24 @@ var _ = Describe("Garbanzo", func() {
 
 			Expect(mockDB.BeginTxCalled).To(HaveLen(1))
 
-			Expect(mockOctoStore.FetchOctoByNameCalled).To(HaveLen(1))
+			Expect(mockOctoStore.FetchByNameCalled).To(HaveLen(1))
 			var actualCtx context.Context
-			Expect(mockOctoStore.FetchOctoByNameInput.Ctx).To(Receive(&actualCtx))
+			Expect(mockOctoStore.FetchByNameInput.Ctx).To(Receive(&actualCtx))
 			Expect(actualCtx).To(Equal(ctx))
 			var actualDB persistence.Database
-			Expect(mockOctoStore.FetchOctoByNameInput.Database).To(Receive(&actualDB))
+			Expect(mockOctoStore.FetchByNameInput.Database).To(Receive(&actualDB))
 			Expect(actualDB).To(Equal(mockTx))
 			var actualOctoName string
-			Expect(mockOctoStore.FetchOctoByNameInput.Name).To(Receive(&actualOctoName))
+			Expect(mockOctoStore.FetchByNameInput.Name).To(Receive(&actualOctoName))
 			Expect(actualOctoName).To(Equal(octoName))
 
-			Expect(mockGarbanzoStore.CreateGarbanzoCalled).To(HaveLen(1))
-			Expect(mockGarbanzoStore.CreateGarbanzoInput.Ctx).To(Receive(&actualCtx))
+			Expect(mockGarbanzoStore.CreateCalled).To(HaveLen(1))
+			Expect(mockGarbanzoStore.CreateInput.Ctx).To(Receive(&actualCtx))
 			Expect(actualCtx).To(Equal(ctx))
-			Expect(mockGarbanzoStore.CreateGarbanzoInput.Database).To(Receive(&actualDB))
+			Expect(mockGarbanzoStore.CreateInput.Database).To(Receive(&actualDB))
 			Expect(actualDB).To(Equal(mockTx))
 			var persistedGarbanzo data.Garbanzo
-			Expect(mockGarbanzoStore.CreateGarbanzoInput.Garbanzo).To(Receive(&persistedGarbanzo))
+			Expect(mockGarbanzoStore.CreateInput.Garbanzo).To(Receive(&persistedGarbanzo))
 			Expect(persistedGarbanzo.APIUUID).To(Equal(actualGarbanzo.APIUUID))
 			Expect(persistedGarbanzo.GarbanzoType).To(Equal(garbanzo.GarbanzoType))
 			Expect(persistedGarbanzo.OctoId).To(Equal(octoId))
@@ -146,7 +146,7 @@ var _ = Describe("Garbanzo", func() {
 				DiameterMM:   0.1,
 			}
 
-			_, err := service.CreateGarbanzo(ctx, "kraken", garbanzo)
+			_, err := service.Create(ctx, "kraken", garbanzo)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("don't bother"))
 		})
@@ -155,8 +155,8 @@ var _ = Describe("Garbanzo", func() {
 			mockDB.BeginTxOutput.Database <- mockTx
 			mockDB.BeginTxOutput.Err <- nil
 
-			mockOctoStore.FetchOctoByNameOutput.Octo <- data.Octo{}
-			mockOctoStore.FetchOctoByNameOutput.Err <- errors.New("don't bother")
+			mockOctoStore.FetchByNameOutput.Octo <- data.Octo{}
+			mockOctoStore.FetchByNameOutput.Err <- errors.New("don't bother")
 
 			mockTx.RollbackOutput.Err <- nil
 
@@ -165,7 +165,7 @@ var _ = Describe("Garbanzo", func() {
 				DiameterMM:   0.1,
 			}
 
-			_, err := service.CreateGarbanzo(ctx, "kraken", garbanzo)
+			_, err := service.Create(ctx, "kraken", garbanzo)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("don't bother"))
 
@@ -175,7 +175,7 @@ var _ = Describe("Garbanzo", func() {
 		It("returns a validation error for an empty request", func() {
 			garbanzo := data.Garbanzo{}
 
-			_, err := service.CreateGarbanzo(ctx, "kraken", garbanzo)
+			_, err := service.Create(ctx, "kraken", garbanzo)
 			Expect(err).To(HaveOccurred())
 			validationErr, ok := err.(services.ValidationError)
 			Expect(ok).To(BeTrue())
@@ -193,7 +193,7 @@ var _ = Describe("Garbanzo", func() {
 				DiameterMM:   -1.2,
 			}
 
-			_, err := service.CreateGarbanzo(ctx, "kraken", garbanzo)
+			_, err := service.Create(ctx, "kraken", garbanzo)
 			Expect(err).To(HaveOccurred())
 			validationErr, ok := err.(services.ValidationError)
 			Expect(ok).To(BeTrue())
@@ -208,22 +208,22 @@ var _ = Describe("Garbanzo", func() {
 
 	It("deletes a garbanzo by API UUID", func() {
 		err := errors.New("some error")
-		mockGarbanzoStore.DeleteGarbanzoByAPIUUIDOutput.Err <- err
+		mockGarbanzoStore.DeleteByAPIUUIDOutput.Err <- err
 		apiUUID := uuid.NewV4()
 
-		actualErr := service.DeleteGarbanzoByAPIUUID(ctx, apiUUID)
+		actualErr := service.DeleteByAPIUUID(ctx, apiUUID)
 
 		Expect(actualErr).To(Equal(err))
 
-		Expect(mockGarbanzoStore.DeleteGarbanzoByAPIUUIDCalled).To(HaveLen(1))
+		Expect(mockGarbanzoStore.DeleteByAPIUUIDCalled).To(HaveLen(1))
 		var actualDB persistence.Database
-		Expect(mockGarbanzoStore.DeleteGarbanzoByAPIUUIDInput.Database).To(Receive(&actualDB))
+		Expect(mockGarbanzoStore.DeleteByAPIUUIDInput.Database).To(Receive(&actualDB))
 		Expect(actualDB).To(Equal(mockDB))
 		var actualCtx context.Context
-		Expect(mockGarbanzoStore.DeleteGarbanzoByAPIUUIDInput.Ctx).To(Receive(&actualCtx))
+		Expect(mockGarbanzoStore.DeleteByAPIUUIDInput.Ctx).To(Receive(&actualCtx))
 		Expect(actualCtx).To(Equal(ctx))
 		var actualAPIUUID uuid.UUID
-		Expect(mockGarbanzoStore.DeleteGarbanzoByAPIUUIDInput.ApiUUID).To(Receive(&actualAPIUUID))
+		Expect(mockGarbanzoStore.DeleteByAPIUUIDInput.ApiUUID).To(Receive(&actualAPIUUID))
 		Expect(actualAPIUUID).To(Equal(apiUUID))
 	})
 })

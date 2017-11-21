@@ -40,8 +40,8 @@ var _ = Describe("OctoCollection", func() {
 				request, err = http.NewRequest(http.MethodGet, "/octos", nil)
 				Expect(err).NotTo(HaveOccurred())
 
-				mockService.FetchAllOctosOutput.Octos <- []data.Octo{}
-				mockService.FetchAllOctosOutput.Err <- nil
+				mockService.FetchAllOutput.Octos <- []data.Octo{}
+				mockService.FetchAllOutput.Err <- nil
 
 				router.ServeHTTP(recorder, request)
 			})
@@ -61,7 +61,7 @@ var _ = Describe("OctoCollection", func() {
 				request, err = http.NewRequest(http.MethodGet, "/octos", nil)
 				Expect(err).NotTo(HaveOccurred())
 
-				mockService.FetchAllOctosOutput.Octos <- []data.Octo{
+				mockService.FetchAllOutput.Octos <- []data.Octo{
 					{
 						Name: "kraken",
 					},
@@ -69,7 +69,7 @@ var _ = Describe("OctoCollection", func() {
 						Name: "cthulhu",
 					},
 				}
-				mockService.FetchAllOctosOutput.Err <- nil
+				mockService.FetchAllOutput.Err <- nil
 
 				router.ServeHTTP(recorder, request)
 			})
@@ -100,8 +100,8 @@ var _ = Describe("OctoCollection", func() {
 				request, err = http.NewRequest(http.MethodGet, "/octos", nil)
 				Expect(err).NotTo(HaveOccurred())
 
-				mockService.FetchAllOctosOutput.Octos <- nil
-				mockService.FetchAllOctosOutput.Err <- errors.New("bad stuff")
+				mockService.FetchAllOutput.Octos <- nil
+				mockService.FetchAllOutput.Err <- errors.New("bad stuff")
 
 				router.ServeHTTP(recorder, request)
 			})
@@ -130,18 +130,18 @@ var _ = Describe("OctoCollection", func() {
 				request, err = http.NewRequest(http.MethodPost, "/octos", body)
 				Expect(err).NotTo(HaveOccurred())
 
-				mockService.CreateOctoOutput.OctoOut <- data.Octo{
+				mockService.CreateOutput.OctoOut <- data.Octo{
 					Id:   234,
 					Name: "kraken",
 				}
-				mockService.CreateOctoOutput.Err <- nil
+				mockService.CreateOutput.Err <- nil
 
 				router.ServeHTTP(recorder, request)
 			})
 
 			It("creates the octo via the service", func() {
 				var octo data.Octo
-				Expect(mockService.CreateOctoInput.OctoIn).To(Receive(&octo))
+				Expect(mockService.CreateInput.OctoIn).To(Receive(&octo))
 				Expect(octo).To(Equal(data.Octo{
 					Name: "kraken",
 				}))
@@ -193,8 +193,8 @@ var _ = Describe("OctoCollection", func() {
 					request, err = http.NewRequest(http.MethodPost, "/octos", body)
 					Expect(err).NotTo(HaveOccurred())
 
-					mockService.CreateOctoOutput.OctoOut <- data.Octo{}
-					mockService.CreateOctoOutput.Err <- errors.New("not good")
+					mockService.CreateOutput.OctoOut <- data.Octo{}
+					mockService.CreateOutput.Err <- errors.New("not good")
 
 					router.ServeHTTP(recorder, request)
 				})

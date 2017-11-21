@@ -47,12 +47,12 @@ var _ = Describe("Garbanzo", func() {
 				request, err = http.NewRequest(http.MethodGet, url+apiUUID.String(), nil)
 				Expect(err).NotTo(HaveOccurred())
 
-				mockService.FetchGarbanzoByAPIUUIDOutput.Garbanzo <- data.Garbanzo{
+				mockService.FetchByAPIUUIDOutput.Garbanzo <- data.Garbanzo{
 					APIUUID:      apiUUID,
 					GarbanzoType: data.DESI,
 					DiameterMM:   4.2,
 				}
-				mockService.FetchGarbanzoByAPIUUIDOutput.Err <- nil
+				mockService.FetchByAPIUUIDOutput.Err <- nil
 
 				router.ServeHTTP(recorder, request)
 			})
@@ -99,8 +99,8 @@ var _ = Describe("Garbanzo", func() {
 					request, err = http.NewRequest(http.MethodGet, url+apiUUID.String(), nil)
 					Expect(err).NotTo(HaveOccurred())
 
-					mockService.FetchGarbanzoByAPIUUIDOutput.Garbanzo <- data.Garbanzo{}
-					mockService.FetchGarbanzoByAPIUUIDOutput.Err <- errors.New("bad stuff")
+					mockService.FetchByAPIUUIDOutput.Garbanzo <- data.Garbanzo{}
+					mockService.FetchByAPIUUIDOutput.Err <- errors.New("bad stuff")
 
 					router.ServeHTTP(recorder, request)
 				})
@@ -124,8 +124,8 @@ var _ = Describe("Garbanzo", func() {
 					request, err = http.NewRequest(http.MethodGet, url+apiUUID.String(), nil)
 					Expect(err).NotTo(HaveOccurred())
 
-					mockService.FetchGarbanzoByAPIUUIDOutput.Garbanzo <- data.Garbanzo{}
-					mockService.FetchGarbanzoByAPIUUIDOutput.Err <- persistence.ErrNotFound
+					mockService.FetchByAPIUUIDOutput.Garbanzo <- data.Garbanzo{}
+					mockService.FetchByAPIUUIDOutput.Err <- persistence.ErrNotFound
 
 					router.ServeHTTP(recorder, request)
 				})
@@ -152,7 +152,7 @@ var _ = Describe("Garbanzo", func() {
 				request, err = http.NewRequest("DELETE", url+apiUUID.String(), nil)
 				Expect(err).NotTo(HaveOccurred())
 
-				mockService.DeleteGarbanzoByAPIUUIDOutput.Err <- nil
+				mockService.DeleteByAPIUUIDOutput.Err <- nil
 
 				router.ServeHTTP(recorder, request)
 			})
@@ -195,7 +195,7 @@ var _ = Describe("Garbanzo", func() {
 					request, err = http.NewRequest(http.MethodDelete, url+apiUUID.String(), nil)
 					Expect(err).NotTo(HaveOccurred())
 
-					mockService.DeleteGarbanzoByAPIUUIDOutput.Err <- errors.New("bad stuff")
+					mockService.DeleteByAPIUUIDOutput.Err <- errors.New("bad stuff")
 
 					router.ServeHTTP(recorder, request)
 				})
@@ -219,7 +219,7 @@ var _ = Describe("Garbanzo", func() {
 					request, err = http.NewRequest(http.MethodDelete, url+apiUUID.String(), nil)
 					Expect(err).NotTo(HaveOccurred())
 
-					mockService.DeleteGarbanzoByAPIUUIDOutput.Err <- persistence.ErrNotFound
+					mockService.DeleteByAPIUUIDOutput.Err <- persistence.ErrNotFound
 
 					router.ServeHTTP(recorder, request)
 				})

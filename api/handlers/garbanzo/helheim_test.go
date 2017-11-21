@@ -14,89 +14,89 @@ import (
 )
 
 type mockGarbanzoService struct {
-	FetchAllGarbanzosCalled chan bool
-	FetchAllGarbanzosInput  struct {
+	FetchAllCalled chan bool
+	FetchAllInput  struct {
 		Ctx chan context.Context
 	}
-	FetchAllGarbanzosOutput struct {
+	FetchAllOutput struct {
 		Garbanzos chan []data.Garbanzo
 		Err       chan error
 	}
-	FetchGarbanzoByAPIUUIDCalled chan bool
-	FetchGarbanzoByAPIUUIDInput  struct {
+	FetchByAPIUUIDCalled chan bool
+	FetchByAPIUUIDInput  struct {
 		Ctx     chan context.Context
 		ApiUUID chan uuid.UUID
 	}
-	FetchGarbanzoByAPIUUIDOutput struct {
+	FetchByAPIUUIDOutput struct {
 		Garbanzo chan data.Garbanzo
 		Err      chan error
 	}
-	CreateGarbanzoCalled chan bool
-	CreateGarbanzoInput  struct {
+	CreateCalled chan bool
+	CreateInput  struct {
 		Ctx        chan context.Context
 		OctoName   chan string
 		GarbanzoIn chan data.Garbanzo
 	}
-	CreateGarbanzoOutput struct {
+	CreateOutput struct {
 		GarbanzoOut chan data.Garbanzo
 		Err         chan error
 	}
-	DeleteGarbanzoByAPIUUIDCalled chan bool
-	DeleteGarbanzoByAPIUUIDInput  struct {
+	DeleteByAPIUUIDCalled chan bool
+	DeleteByAPIUUIDInput  struct {
 		Ctx     chan context.Context
 		ApiUUID chan uuid.UUID
 	}
-	DeleteGarbanzoByAPIUUIDOutput struct {
+	DeleteByAPIUUIDOutput struct {
 		Err chan error
 	}
 }
 
 func newMockGarbanzoService() *mockGarbanzoService {
 	m := &mockGarbanzoService{}
-	m.FetchAllGarbanzosCalled = make(chan bool, 100)
-	m.FetchAllGarbanzosInput.Ctx = make(chan context.Context, 100)
-	m.FetchAllGarbanzosOutput.Garbanzos = make(chan []data.Garbanzo, 100)
-	m.FetchAllGarbanzosOutput.Err = make(chan error, 100)
-	m.FetchGarbanzoByAPIUUIDCalled = make(chan bool, 100)
-	m.FetchGarbanzoByAPIUUIDInput.Ctx = make(chan context.Context, 100)
-	m.FetchGarbanzoByAPIUUIDInput.ApiUUID = make(chan uuid.UUID, 100)
-	m.FetchGarbanzoByAPIUUIDOutput.Garbanzo = make(chan data.Garbanzo, 100)
-	m.FetchGarbanzoByAPIUUIDOutput.Err = make(chan error, 100)
-	m.CreateGarbanzoCalled = make(chan bool, 100)
-	m.CreateGarbanzoInput.Ctx = make(chan context.Context, 100)
-	m.CreateGarbanzoInput.OctoName = make(chan string, 100)
-	m.CreateGarbanzoInput.GarbanzoIn = make(chan data.Garbanzo, 100)
-	m.CreateGarbanzoOutput.GarbanzoOut = make(chan data.Garbanzo, 100)
-	m.CreateGarbanzoOutput.Err = make(chan error, 100)
-	m.DeleteGarbanzoByAPIUUIDCalled = make(chan bool, 100)
-	m.DeleteGarbanzoByAPIUUIDInput.Ctx = make(chan context.Context, 100)
-	m.DeleteGarbanzoByAPIUUIDInput.ApiUUID = make(chan uuid.UUID, 100)
-	m.DeleteGarbanzoByAPIUUIDOutput.Err = make(chan error, 100)
+	m.FetchAllCalled = make(chan bool, 100)
+	m.FetchAllInput.Ctx = make(chan context.Context, 100)
+	m.FetchAllOutput.Garbanzos = make(chan []data.Garbanzo, 100)
+	m.FetchAllOutput.Err = make(chan error, 100)
+	m.FetchByAPIUUIDCalled = make(chan bool, 100)
+	m.FetchByAPIUUIDInput.Ctx = make(chan context.Context, 100)
+	m.FetchByAPIUUIDInput.ApiUUID = make(chan uuid.UUID, 100)
+	m.FetchByAPIUUIDOutput.Garbanzo = make(chan data.Garbanzo, 100)
+	m.FetchByAPIUUIDOutput.Err = make(chan error, 100)
+	m.CreateCalled = make(chan bool, 100)
+	m.CreateInput.Ctx = make(chan context.Context, 100)
+	m.CreateInput.OctoName = make(chan string, 100)
+	m.CreateInput.GarbanzoIn = make(chan data.Garbanzo, 100)
+	m.CreateOutput.GarbanzoOut = make(chan data.Garbanzo, 100)
+	m.CreateOutput.Err = make(chan error, 100)
+	m.DeleteByAPIUUIDCalled = make(chan bool, 100)
+	m.DeleteByAPIUUIDInput.Ctx = make(chan context.Context, 100)
+	m.DeleteByAPIUUIDInput.ApiUUID = make(chan uuid.UUID, 100)
+	m.DeleteByAPIUUIDOutput.Err = make(chan error, 100)
 	return m
 }
-func (m *mockGarbanzoService) FetchAllGarbanzos(ctx context.Context) (garbanzos []data.Garbanzo, err error) {
-	m.FetchAllGarbanzosCalled <- true
-	m.FetchAllGarbanzosInput.Ctx <- ctx
-	return <-m.FetchAllGarbanzosOutput.Garbanzos, <-m.FetchAllGarbanzosOutput.Err
+func (m *mockGarbanzoService) FetchAll(ctx context.Context) (garbanzos []data.Garbanzo, err error) {
+	m.FetchAllCalled <- true
+	m.FetchAllInput.Ctx <- ctx
+	return <-m.FetchAllOutput.Garbanzos, <-m.FetchAllOutput.Err
 }
-func (m *mockGarbanzoService) FetchGarbanzoByAPIUUID(ctx context.Context, apiUUID uuid.UUID) (garbanzo data.Garbanzo, err error) {
-	m.FetchGarbanzoByAPIUUIDCalled <- true
-	m.FetchGarbanzoByAPIUUIDInput.Ctx <- ctx
-	m.FetchGarbanzoByAPIUUIDInput.ApiUUID <- apiUUID
-	return <-m.FetchGarbanzoByAPIUUIDOutput.Garbanzo, <-m.FetchGarbanzoByAPIUUIDOutput.Err
+func (m *mockGarbanzoService) FetchByAPIUUID(ctx context.Context, apiUUID uuid.UUID) (garbanzo data.Garbanzo, err error) {
+	m.FetchByAPIUUIDCalled <- true
+	m.FetchByAPIUUIDInput.Ctx <- ctx
+	m.FetchByAPIUUIDInput.ApiUUID <- apiUUID
+	return <-m.FetchByAPIUUIDOutput.Garbanzo, <-m.FetchByAPIUUIDOutput.Err
 }
-func (m *mockGarbanzoService) CreateGarbanzo(ctx context.Context, octoName string, garbanzoIn data.Garbanzo) (garbanzoOut data.Garbanzo, err error) {
-	m.CreateGarbanzoCalled <- true
-	m.CreateGarbanzoInput.Ctx <- ctx
-	m.CreateGarbanzoInput.OctoName <- octoName
-	m.CreateGarbanzoInput.GarbanzoIn <- garbanzoIn
-	return <-m.CreateGarbanzoOutput.GarbanzoOut, <-m.CreateGarbanzoOutput.Err
+func (m *mockGarbanzoService) Create(ctx context.Context, octoName string, garbanzoIn data.Garbanzo) (garbanzoOut data.Garbanzo, err error) {
+	m.CreateCalled <- true
+	m.CreateInput.Ctx <- ctx
+	m.CreateInput.OctoName <- octoName
+	m.CreateInput.GarbanzoIn <- garbanzoIn
+	return <-m.CreateOutput.GarbanzoOut, <-m.CreateOutput.Err
 }
-func (m *mockGarbanzoService) DeleteGarbanzoByAPIUUID(ctx context.Context, apiUUID uuid.UUID) (err error) {
-	m.DeleteGarbanzoByAPIUUIDCalled <- true
-	m.DeleteGarbanzoByAPIUUIDInput.Ctx <- ctx
-	m.DeleteGarbanzoByAPIUUIDInput.ApiUUID <- apiUUID
-	return <-m.DeleteGarbanzoByAPIUUIDOutput.Err
+func (m *mockGarbanzoService) DeleteByAPIUUID(ctx context.Context, apiUUID uuid.UUID) (err error) {
+	m.DeleteByAPIUUIDCalled <- true
+	m.DeleteByAPIUUIDInput.Ctx <- ctx
+	m.DeleteByAPIUUIDInput.ApiUUID <- apiUUID
+	return <-m.DeleteByAPIUUIDOutput.Err
 }
 
 type mockContext struct {

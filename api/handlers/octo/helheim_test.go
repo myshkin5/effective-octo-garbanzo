@@ -13,86 +13,86 @@ import (
 )
 
 type mockOctoService struct {
-	FetchAllOctosCalled chan bool
-	FetchAllOctosInput  struct {
+	FetchAllCalled chan bool
+	FetchAllInput  struct {
 		Ctx chan context.Context
 	}
-	FetchAllOctosOutput struct {
+	FetchAllOutput struct {
 		Octos chan []data.Octo
 		Err   chan error
 	}
-	FetchOctoByNameCalled chan bool
-	FetchOctoByNameInput  struct {
+	FetchByNameCalled chan bool
+	FetchByNameInput  struct {
 		Ctx  chan context.Context
 		Name chan string
 	}
-	FetchOctoByNameOutput struct {
+	FetchByNameOutput struct {
 		Octo chan data.Octo
 		Err  chan error
 	}
-	CreateOctoCalled chan bool
-	CreateOctoInput  struct {
+	CreateCalled chan bool
+	CreateInput  struct {
 		Ctx    chan context.Context
 		OctoIn chan data.Octo
 	}
-	CreateOctoOutput struct {
+	CreateOutput struct {
 		OctoOut chan data.Octo
 		Err     chan error
 	}
-	DeleteOctoByNameCalled chan bool
-	DeleteOctoByNameInput  struct {
+	DeleteByNameCalled chan bool
+	DeleteByNameInput  struct {
 		Ctx  chan context.Context
 		Name chan string
 	}
-	DeleteOctoByNameOutput struct {
+	DeleteByNameOutput struct {
 		Err chan error
 	}
 }
 
 func newMockOctoService() *mockOctoService {
 	m := &mockOctoService{}
-	m.FetchAllOctosCalled = make(chan bool, 100)
-	m.FetchAllOctosInput.Ctx = make(chan context.Context, 100)
-	m.FetchAllOctosOutput.Octos = make(chan []data.Octo, 100)
-	m.FetchAllOctosOutput.Err = make(chan error, 100)
-	m.FetchOctoByNameCalled = make(chan bool, 100)
-	m.FetchOctoByNameInput.Ctx = make(chan context.Context, 100)
-	m.FetchOctoByNameInput.Name = make(chan string, 100)
-	m.FetchOctoByNameOutput.Octo = make(chan data.Octo, 100)
-	m.FetchOctoByNameOutput.Err = make(chan error, 100)
-	m.CreateOctoCalled = make(chan bool, 100)
-	m.CreateOctoInput.Ctx = make(chan context.Context, 100)
-	m.CreateOctoInput.OctoIn = make(chan data.Octo, 100)
-	m.CreateOctoOutput.OctoOut = make(chan data.Octo, 100)
-	m.CreateOctoOutput.Err = make(chan error, 100)
-	m.DeleteOctoByNameCalled = make(chan bool, 100)
-	m.DeleteOctoByNameInput.Ctx = make(chan context.Context, 100)
-	m.DeleteOctoByNameInput.Name = make(chan string, 100)
-	m.DeleteOctoByNameOutput.Err = make(chan error, 100)
+	m.FetchAllCalled = make(chan bool, 100)
+	m.FetchAllInput.Ctx = make(chan context.Context, 100)
+	m.FetchAllOutput.Octos = make(chan []data.Octo, 100)
+	m.FetchAllOutput.Err = make(chan error, 100)
+	m.FetchByNameCalled = make(chan bool, 100)
+	m.FetchByNameInput.Ctx = make(chan context.Context, 100)
+	m.FetchByNameInput.Name = make(chan string, 100)
+	m.FetchByNameOutput.Octo = make(chan data.Octo, 100)
+	m.FetchByNameOutput.Err = make(chan error, 100)
+	m.CreateCalled = make(chan bool, 100)
+	m.CreateInput.Ctx = make(chan context.Context, 100)
+	m.CreateInput.OctoIn = make(chan data.Octo, 100)
+	m.CreateOutput.OctoOut = make(chan data.Octo, 100)
+	m.CreateOutput.Err = make(chan error, 100)
+	m.DeleteByNameCalled = make(chan bool, 100)
+	m.DeleteByNameInput.Ctx = make(chan context.Context, 100)
+	m.DeleteByNameInput.Name = make(chan string, 100)
+	m.DeleteByNameOutput.Err = make(chan error, 100)
 	return m
 }
-func (m *mockOctoService) FetchAllOctos(ctx context.Context) (octos []data.Octo, err error) {
-	m.FetchAllOctosCalled <- true
-	m.FetchAllOctosInput.Ctx <- ctx
-	return <-m.FetchAllOctosOutput.Octos, <-m.FetchAllOctosOutput.Err
+func (m *mockOctoService) FetchAll(ctx context.Context) (octos []data.Octo, err error) {
+	m.FetchAllCalled <- true
+	m.FetchAllInput.Ctx <- ctx
+	return <-m.FetchAllOutput.Octos, <-m.FetchAllOutput.Err
 }
-func (m *mockOctoService) FetchOctoByName(ctx context.Context, name string) (octo data.Octo, err error) {
-	m.FetchOctoByNameCalled <- true
-	m.FetchOctoByNameInput.Ctx <- ctx
-	m.FetchOctoByNameInput.Name <- name
-	return <-m.FetchOctoByNameOutput.Octo, <-m.FetchOctoByNameOutput.Err
+func (m *mockOctoService) FetchByName(ctx context.Context, name string) (octo data.Octo, err error) {
+	m.FetchByNameCalled <- true
+	m.FetchByNameInput.Ctx <- ctx
+	m.FetchByNameInput.Name <- name
+	return <-m.FetchByNameOutput.Octo, <-m.FetchByNameOutput.Err
 }
-func (m *mockOctoService) CreateOcto(ctx context.Context, octoIn data.Octo) (octoOut data.Octo, err error) {
-	m.CreateOctoCalled <- true
-	m.CreateOctoInput.Ctx <- ctx
-	m.CreateOctoInput.OctoIn <- octoIn
-	return <-m.CreateOctoOutput.OctoOut, <-m.CreateOctoOutput.Err
+func (m *mockOctoService) Create(ctx context.Context, octoIn data.Octo) (octoOut data.Octo, err error) {
+	m.CreateCalled <- true
+	m.CreateInput.Ctx <- ctx
+	m.CreateInput.OctoIn <- octoIn
+	return <-m.CreateOutput.OctoOut, <-m.CreateOutput.Err
 }
-func (m *mockOctoService) DeleteOctoByName(ctx context.Context, name string) (err error) {
-	m.DeleteOctoByNameCalled <- true
-	m.DeleteOctoByNameInput.Ctx <- ctx
-	m.DeleteOctoByNameInput.Name <- name
-	return <-m.DeleteOctoByNameOutput.Err
+func (m *mockOctoService) DeleteByName(ctx context.Context, name string) (err error) {
+	m.DeleteByNameCalled <- true
+	m.DeleteByNameInput.Ctx <- ctx
+	m.DeleteByNameInput.Name <- name
+	return <-m.DeleteByNameOutput.Err
 }
 
 type mockContext struct {

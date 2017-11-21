@@ -10,10 +10,10 @@ import (
 )
 
 type GarbanzoStore interface {
-	FetchAllGarbanzos(ctx context.Context, database persistence.Database) (garbanzos []data.Garbanzo, err error)
-	FetchGarbanzoByAPIUUID(ctx context.Context, database persistence.Database, apiUUID uuid.UUID) (garbanzo data.Garbanzo, err error)
-	CreateGarbanzo(ctx context.Context, database persistence.Database, garbanzo data.Garbanzo) (garbanzoId int, err error)
-	DeleteGarbanzoByAPIUUID(ctx context.Context, database persistence.Database, apiUUID uuid.UUID) (err error)
+	FetchAll(ctx context.Context, database persistence.Database) (garbanzos []data.Garbanzo, err error)
+	FetchByAPIUUID(ctx context.Context, database persistence.Database, apiUUID uuid.UUID) (garbanzo data.Garbanzo, err error)
+	Create(ctx context.Context, database persistence.Database, garbanzo data.Garbanzo) (garbanzoId int, err error)
+	DeleteByAPIUUID(ctx context.Context, database persistence.Database, apiUUID uuid.UUID) (err error)
 }
 
 type GarbanzoService struct {
@@ -30,15 +30,15 @@ func NewGarbanzoService(octoStore OctoStore, garbanzoStore GarbanzoStore, databa
 	}
 }
 
-func (s *GarbanzoService) FetchAllGarbanzos(ctx context.Context) ([]data.Garbanzo, error) {
-	return s.garbanzoStore.FetchAllGarbanzos(ctx, s.database)
+func (s *GarbanzoService) FetchAll(ctx context.Context) ([]data.Garbanzo, error) {
+	return s.garbanzoStore.FetchAll(ctx, s.database)
 }
 
-func (s *GarbanzoService) FetchGarbanzoByAPIUUID(ctx context.Context, apiUUID uuid.UUID) (data.Garbanzo, error) {
-	return s.garbanzoStore.FetchGarbanzoByAPIUUID(ctx, s.database, apiUUID)
+func (s *GarbanzoService) FetchByAPIUUID(ctx context.Context, apiUUID uuid.UUID) (data.Garbanzo, error) {
+	return s.garbanzoStore.FetchByAPIUUID(ctx, s.database, apiUUID)
 }
 
-func (s *GarbanzoService) CreateGarbanzo(ctx context.Context, octoName string, garbanzo data.Garbanzo) (garbanzoOut data.Garbanzo, err error) {
+func (s *GarbanzoService) Create(ctx context.Context, octoName string, garbanzo data.Garbanzo) (garbanzoOut data.Garbanzo, err error) {
 	err = validate(garbanzo)
 	if err != nil {
 		return data.Garbanzo{}, err
@@ -58,13 +58,13 @@ func (s *GarbanzoService) CreateGarbanzo(ctx context.Context, octoName string, g
 		err = database.Commit()
 	}()
 
-	octo, err := s.octoStore.FetchOctoByName(ctx, database, octoName)
+	octo, err := s.octoStore.FetchByName(ctx, database, octoName)
 	if err != nil {
 		return data.Garbanzo{}, err
 	}
 	garbanzo.OctoId = octo.Id
 
-	garbanzo.Id, err = s.garbanzoStore.CreateGarbanzo(ctx, database, garbanzo)
+	garbanzo.Id, err = s.garbanzoStore.Create(ctx, database, garbanzo)
 	if err != nil {
 		return data.Garbanzo{}, err
 	}
@@ -94,6 +94,6 @@ func validate(garbanzo data.Garbanzo) error {
 	return nil
 }
 
-func (s *GarbanzoService) DeleteGarbanzoByAPIUUID(ctx context.Context, apiUUID uuid.UUID) error {
-	return s.garbanzoStore.DeleteGarbanzoByAPIUUID(ctx, s.database, apiUUID)
+func (s *GarbanzoService) DeleteByAPIUUID(ctx context.Context, apiUUID uuid.UUID) error {
+	return s.garbanzoStore.DeleteByAPIUUID(ctx, s.database, apiUUID)
 }

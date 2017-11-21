@@ -9,7 +9,7 @@ import (
 
 type OctoStore struct{}
 
-func (OctoStore) FetchAllOctos(ctx context.Context, database Database) ([]data.Octo, error) {
+func (OctoStore) FetchAll(ctx context.Context, database Database) ([]data.Octo, error) {
 	query := "select id, name from octo order by id"
 
 	rows, err := database.Query(ctx, query)
@@ -37,7 +37,7 @@ func (OctoStore) FetchAllOctos(ctx context.Context, database Database) ([]data.O
 	return octos, nil
 }
 
-func (OctoStore) FetchOctoByName(ctx context.Context, database Database, name string) (data.Octo, error) {
+func (OctoStore) FetchByName(ctx context.Context, database Database, name string) (data.Octo, error) {
 	query := "select id from octo where name = $1"
 
 	var id int
@@ -54,12 +54,12 @@ func (OctoStore) FetchOctoByName(ctx context.Context, database Database, name st
 	}, nil
 }
 
-func (OctoStore) CreateOcto(ctx context.Context, database Database, octo data.Octo) (int, error) {
+func (OctoStore) Create(ctx context.Context, database Database, octo data.Octo) (int, error) {
 	query := "insert into octo (name) values ($1) returning id"
 	return ExecInsert(ctx, database, query, octo.Name)
 }
 
-func (OctoStore) DeleteOctoByName(ctx context.Context, database Database, name string) error {
+func (OctoStore) DeleteByName(ctx context.Context, database Database, name string) error {
 	query := "delete from octo where name = $1"
 	return ExecDelete(ctx, database, query, name)
 }

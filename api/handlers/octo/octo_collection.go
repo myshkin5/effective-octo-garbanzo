@@ -28,7 +28,7 @@ func MapCollectionRoutes(baseURL string, router *mux.Router, middleware alice.Ch
 }
 
 func (g *octoCollection) get(w http.ResponseWriter, req *http.Request) {
-	octos, err := g.octoService.FetchAllOctos(req.Context())
+	octos, err := g.octoService.FetchAll(req.Context())
 	if err != nil {
 		handlers.Error(w, "Error fetching all octos", http.StatusInternalServerError, err, fieldMapping)
 		return
@@ -50,7 +50,7 @@ func (g *octoCollection) post(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	octo, err := g.octoService.CreateOcto(req.Context(), data.Octo{
+	octo, err := g.octoService.Create(req.Context(), data.Octo{
 		Name: dto.Name,
 	})
 	if err != nil {

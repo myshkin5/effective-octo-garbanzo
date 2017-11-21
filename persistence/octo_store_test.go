@@ -27,9 +27,9 @@ var _ = Describe("OctoStore Integration", func() {
 		store = persistence.OctoStore{}
 	})
 
-	Describe("FetchAllOctos", func() {
+	Describe("FetchAll", func() {
 		It("fetches no octos when there are none", func() {
-			octos, err := store.FetchAllOctos(ctx, database)
+			octos, err := store.FetchAll(ctx, database)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(octos).To(HaveLen(0))
@@ -43,12 +43,12 @@ var _ = Describe("OctoStore Integration", func() {
 				Name: "cthulhu",
 			}
 
-			octoId1, err := store.CreateOcto(ctx, database, octo1)
+			octoId1, err := store.Create(ctx, database, octo1)
 			Expect(err).NotTo(HaveOccurred())
-			octoId2, err := store.CreateOcto(ctx, database, octo2)
+			octoId2, err := store.Create(ctx, database, octo2)
 			Expect(err).NotTo(HaveOccurred())
 
-			octos, err := store.FetchAllOctos(ctx, database)
+			octos, err := store.FetchAll(ctx, database)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(octos).To(HaveLen(2))
@@ -61,9 +61,9 @@ var _ = Describe("OctoStore Integration", func() {
 		})
 	})
 
-	Describe("FetchOctoByName", func() {
+	Describe("FetchByName", func() {
 		It("returns not found when fetching an unknown octo", func() {
-			_, err := store.FetchOctoByName(ctx, database, "squidward")
+			_, err := store.FetchByName(ctx, database, "squidward")
 
 			Expect(err).To(Equal(persistence.ErrNotFound))
 		})
@@ -73,26 +73,26 @@ var _ = Describe("OctoStore Integration", func() {
 				Name: "kraken",
 			}
 
-			octoId, err := store.CreateOcto(ctx, database, octo)
+			octoId, err := store.Create(ctx, database, octo)
 			Expect(err).NotTo(HaveOccurred())
 
-			fetchedOcto, err := store.FetchOctoByName(ctx, database, "kraken")
+			fetchedOcto, err := store.FetchByName(ctx, database, "kraken")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fetchedOcto.Id).To(Equal(octoId))
 			Expect(fetchedOcto.Name).To(Equal("kraken"))
 		})
 	})
 
-	Describe("CreateOcto", func() {
+	Describe("Create", func() {
 		It("creates a new octo", func() {
 			octo := data.Octo{
 				Name: "kraken",
 			}
 
-			octoId, err := store.CreateOcto(ctx, database, octo)
+			octoId, err := store.Create(ctx, database, octo)
 			Expect(err).NotTo(HaveOccurred())
 
-			fetchedOcto, err := store.FetchOctoByName(ctx, database, "kraken")
+			fetchedOcto, err := store.FetchByName(ctx, database, "kraken")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fetchedOcto.Id).To(Equal(octoId))
 			Expect(fetchedOcto.Name).To(Equal("kraken"))
@@ -105,15 +105,15 @@ var _ = Describe("OctoStore Integration", func() {
 				Name: "kraken",
 			}
 
-			octoId, err := store.CreateOcto(ctx, database, octo)
+			octoId, err := store.Create(ctx, database, octo)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(octoId).NotTo(Equal(ignoredId))
 		})
 	})
 
-	Describe("DeleteOctoByName", func() {
+	Describe("DeleteByName", func() {
 		It("returns not found when deleting an unknown octo", func() {
-			err := store.DeleteOctoByName(ctx, database, "squidward")
+			err := store.DeleteByName(ctx, database, "squidward")
 
 			Expect(err).To(Equal(persistence.ErrNotFound))
 		})
@@ -123,12 +123,12 @@ var _ = Describe("OctoStore Integration", func() {
 				Name: "kraken",
 			}
 
-			_, err := store.CreateOcto(ctx, database, octo)
+			_, err := store.Create(ctx, database, octo)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(store.DeleteOctoByName(ctx, database, "kraken")).To(Succeed())
+			Expect(store.DeleteByName(ctx, database, "kraken")).To(Succeed())
 
-			err = store.DeleteOctoByName(ctx, database, "kraken")
+			err = store.DeleteByName(ctx, database, "kraken")
 			Expect(err).To(Equal(persistence.ErrNotFound))
 		})
 	})

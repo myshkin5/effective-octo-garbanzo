@@ -16,193 +16,193 @@ import (
 )
 
 type mockGarbanzoStore struct {
-	FetchAllGarbanzosCalled chan bool
-	FetchAllGarbanzosInput  struct {
+	FetchAllCalled chan bool
+	FetchAllInput  struct {
 		Ctx      chan context.Context
 		Database chan persistence.Database
 	}
-	FetchAllGarbanzosOutput struct {
+	FetchAllOutput struct {
 		Garbanzos chan []data.Garbanzo
 		Err       chan error
 	}
-	FetchGarbanzoByAPIUUIDCalled chan bool
-	FetchGarbanzoByAPIUUIDInput  struct {
+	FetchByAPIUUIDCalled chan bool
+	FetchByAPIUUIDInput  struct {
 		Ctx      chan context.Context
 		Database chan persistence.Database
 		ApiUUID  chan uuid.UUID
 	}
-	FetchGarbanzoByAPIUUIDOutput struct {
+	FetchByAPIUUIDOutput struct {
 		Garbanzo chan data.Garbanzo
 		Err      chan error
 	}
-	CreateGarbanzoCalled chan bool
-	CreateGarbanzoInput  struct {
+	CreateCalled chan bool
+	CreateInput  struct {
 		Ctx      chan context.Context
 		Database chan persistence.Database
 		Garbanzo chan data.Garbanzo
 	}
-	CreateGarbanzoOutput struct {
+	CreateOutput struct {
 		GarbanzoId chan int
 		Err        chan error
 	}
-	DeleteGarbanzoByAPIUUIDCalled chan bool
-	DeleteGarbanzoByAPIUUIDInput  struct {
+	DeleteByAPIUUIDCalled chan bool
+	DeleteByAPIUUIDInput  struct {
 		Ctx      chan context.Context
 		Database chan persistence.Database
 		ApiUUID  chan uuid.UUID
 	}
-	DeleteGarbanzoByAPIUUIDOutput struct {
+	DeleteByAPIUUIDOutput struct {
 		Err chan error
 	}
 }
 
 func newMockGarbanzoStore() *mockGarbanzoStore {
 	m := &mockGarbanzoStore{}
-	m.FetchAllGarbanzosCalled = make(chan bool, 100)
-	m.FetchAllGarbanzosInput.Ctx = make(chan context.Context, 100)
-	m.FetchAllGarbanzosInput.Database = make(chan persistence.Database, 100)
-	m.FetchAllGarbanzosOutput.Garbanzos = make(chan []data.Garbanzo, 100)
-	m.FetchAllGarbanzosOutput.Err = make(chan error, 100)
-	m.FetchGarbanzoByAPIUUIDCalled = make(chan bool, 100)
-	m.FetchGarbanzoByAPIUUIDInput.Ctx = make(chan context.Context, 100)
-	m.FetchGarbanzoByAPIUUIDInput.Database = make(chan persistence.Database, 100)
-	m.FetchGarbanzoByAPIUUIDInput.ApiUUID = make(chan uuid.UUID, 100)
-	m.FetchGarbanzoByAPIUUIDOutput.Garbanzo = make(chan data.Garbanzo, 100)
-	m.FetchGarbanzoByAPIUUIDOutput.Err = make(chan error, 100)
-	m.CreateGarbanzoCalled = make(chan bool, 100)
-	m.CreateGarbanzoInput.Ctx = make(chan context.Context, 100)
-	m.CreateGarbanzoInput.Database = make(chan persistence.Database, 100)
-	m.CreateGarbanzoInput.Garbanzo = make(chan data.Garbanzo, 100)
-	m.CreateGarbanzoOutput.GarbanzoId = make(chan int, 100)
-	m.CreateGarbanzoOutput.Err = make(chan error, 100)
-	m.DeleteGarbanzoByAPIUUIDCalled = make(chan bool, 100)
-	m.DeleteGarbanzoByAPIUUIDInput.Ctx = make(chan context.Context, 100)
-	m.DeleteGarbanzoByAPIUUIDInput.Database = make(chan persistence.Database, 100)
-	m.DeleteGarbanzoByAPIUUIDInput.ApiUUID = make(chan uuid.UUID, 100)
-	m.DeleteGarbanzoByAPIUUIDOutput.Err = make(chan error, 100)
+	m.FetchAllCalled = make(chan bool, 100)
+	m.FetchAllInput.Ctx = make(chan context.Context, 100)
+	m.FetchAllInput.Database = make(chan persistence.Database, 100)
+	m.FetchAllOutput.Garbanzos = make(chan []data.Garbanzo, 100)
+	m.FetchAllOutput.Err = make(chan error, 100)
+	m.FetchByAPIUUIDCalled = make(chan bool, 100)
+	m.FetchByAPIUUIDInput.Ctx = make(chan context.Context, 100)
+	m.FetchByAPIUUIDInput.Database = make(chan persistence.Database, 100)
+	m.FetchByAPIUUIDInput.ApiUUID = make(chan uuid.UUID, 100)
+	m.FetchByAPIUUIDOutput.Garbanzo = make(chan data.Garbanzo, 100)
+	m.FetchByAPIUUIDOutput.Err = make(chan error, 100)
+	m.CreateCalled = make(chan bool, 100)
+	m.CreateInput.Ctx = make(chan context.Context, 100)
+	m.CreateInput.Database = make(chan persistence.Database, 100)
+	m.CreateInput.Garbanzo = make(chan data.Garbanzo, 100)
+	m.CreateOutput.GarbanzoId = make(chan int, 100)
+	m.CreateOutput.Err = make(chan error, 100)
+	m.DeleteByAPIUUIDCalled = make(chan bool, 100)
+	m.DeleteByAPIUUIDInput.Ctx = make(chan context.Context, 100)
+	m.DeleteByAPIUUIDInput.Database = make(chan persistence.Database, 100)
+	m.DeleteByAPIUUIDInput.ApiUUID = make(chan uuid.UUID, 100)
+	m.DeleteByAPIUUIDOutput.Err = make(chan error, 100)
 	return m
 }
-func (m *mockGarbanzoStore) FetchAllGarbanzos(ctx context.Context, database persistence.Database) (garbanzos []data.Garbanzo, err error) {
-	m.FetchAllGarbanzosCalled <- true
-	m.FetchAllGarbanzosInput.Ctx <- ctx
-	m.FetchAllGarbanzosInput.Database <- database
-	return <-m.FetchAllGarbanzosOutput.Garbanzos, <-m.FetchAllGarbanzosOutput.Err
+func (m *mockGarbanzoStore) FetchAll(ctx context.Context, database persistence.Database) (garbanzos []data.Garbanzo, err error) {
+	m.FetchAllCalled <- true
+	m.FetchAllInput.Ctx <- ctx
+	m.FetchAllInput.Database <- database
+	return <-m.FetchAllOutput.Garbanzos, <-m.FetchAllOutput.Err
 }
-func (m *mockGarbanzoStore) FetchGarbanzoByAPIUUID(ctx context.Context, database persistence.Database, apiUUID uuid.UUID) (garbanzo data.Garbanzo, err error) {
-	m.FetchGarbanzoByAPIUUIDCalled <- true
-	m.FetchGarbanzoByAPIUUIDInput.Ctx <- ctx
-	m.FetchGarbanzoByAPIUUIDInput.Database <- database
-	m.FetchGarbanzoByAPIUUIDInput.ApiUUID <- apiUUID
-	return <-m.FetchGarbanzoByAPIUUIDOutput.Garbanzo, <-m.FetchGarbanzoByAPIUUIDOutput.Err
+func (m *mockGarbanzoStore) FetchByAPIUUID(ctx context.Context, database persistence.Database, apiUUID uuid.UUID) (garbanzo data.Garbanzo, err error) {
+	m.FetchByAPIUUIDCalled <- true
+	m.FetchByAPIUUIDInput.Ctx <- ctx
+	m.FetchByAPIUUIDInput.Database <- database
+	m.FetchByAPIUUIDInput.ApiUUID <- apiUUID
+	return <-m.FetchByAPIUUIDOutput.Garbanzo, <-m.FetchByAPIUUIDOutput.Err
 }
-func (m *mockGarbanzoStore) CreateGarbanzo(ctx context.Context, database persistence.Database, garbanzo data.Garbanzo) (garbanzoId int, err error) {
-	m.CreateGarbanzoCalled <- true
-	m.CreateGarbanzoInput.Ctx <- ctx
-	m.CreateGarbanzoInput.Database <- database
-	m.CreateGarbanzoInput.Garbanzo <- garbanzo
-	return <-m.CreateGarbanzoOutput.GarbanzoId, <-m.CreateGarbanzoOutput.Err
+func (m *mockGarbanzoStore) Create(ctx context.Context, database persistence.Database, garbanzo data.Garbanzo) (garbanzoId int, err error) {
+	m.CreateCalled <- true
+	m.CreateInput.Ctx <- ctx
+	m.CreateInput.Database <- database
+	m.CreateInput.Garbanzo <- garbanzo
+	return <-m.CreateOutput.GarbanzoId, <-m.CreateOutput.Err
 }
-func (m *mockGarbanzoStore) DeleteGarbanzoByAPIUUID(ctx context.Context, database persistence.Database, apiUUID uuid.UUID) (err error) {
-	m.DeleteGarbanzoByAPIUUIDCalled <- true
-	m.DeleteGarbanzoByAPIUUIDInput.Ctx <- ctx
-	m.DeleteGarbanzoByAPIUUIDInput.Database <- database
-	m.DeleteGarbanzoByAPIUUIDInput.ApiUUID <- apiUUID
-	return <-m.DeleteGarbanzoByAPIUUIDOutput.Err
+func (m *mockGarbanzoStore) DeleteByAPIUUID(ctx context.Context, database persistence.Database, apiUUID uuid.UUID) (err error) {
+	m.DeleteByAPIUUIDCalled <- true
+	m.DeleteByAPIUUIDInput.Ctx <- ctx
+	m.DeleteByAPIUUIDInput.Database <- database
+	m.DeleteByAPIUUIDInput.ApiUUID <- apiUUID
+	return <-m.DeleteByAPIUUIDOutput.Err
 }
 
 type mockOctoStore struct {
-	FetchAllOctosCalled chan bool
-	FetchAllOctosInput  struct {
+	FetchAllCalled chan bool
+	FetchAllInput  struct {
 		Ctx      chan context.Context
 		Database chan persistence.Database
 	}
-	FetchAllOctosOutput struct {
+	FetchAllOutput struct {
 		Octos chan []data.Octo
 		Err   chan error
 	}
-	FetchOctoByNameCalled chan bool
-	FetchOctoByNameInput  struct {
+	FetchByNameCalled chan bool
+	FetchByNameInput  struct {
 		Ctx      chan context.Context
 		Database chan persistence.Database
 		Name     chan string
 	}
-	FetchOctoByNameOutput struct {
+	FetchByNameOutput struct {
 		Octo chan data.Octo
 		Err  chan error
 	}
-	CreateOctoCalled chan bool
-	CreateOctoInput  struct {
+	CreateCalled chan bool
+	CreateInput  struct {
 		Ctx      chan context.Context
 		Database chan persistence.Database
 		Octo     chan data.Octo
 	}
-	CreateOctoOutput struct {
+	CreateOutput struct {
 		OctoId chan int
 		Err    chan error
 	}
-	DeleteOctoByNameCalled chan bool
-	DeleteOctoByNameInput  struct {
+	DeleteByNameCalled chan bool
+	DeleteByNameInput  struct {
 		Ctx      chan context.Context
 		Database chan persistence.Database
 		Name     chan string
 	}
-	DeleteOctoByNameOutput struct {
+	DeleteByNameOutput struct {
 		Err chan error
 	}
 }
 
 func newMockOctoStore() *mockOctoStore {
 	m := &mockOctoStore{}
-	m.FetchAllOctosCalled = make(chan bool, 100)
-	m.FetchAllOctosInput.Ctx = make(chan context.Context, 100)
-	m.FetchAllOctosInput.Database = make(chan persistence.Database, 100)
-	m.FetchAllOctosOutput.Octos = make(chan []data.Octo, 100)
-	m.FetchAllOctosOutput.Err = make(chan error, 100)
-	m.FetchOctoByNameCalled = make(chan bool, 100)
-	m.FetchOctoByNameInput.Ctx = make(chan context.Context, 100)
-	m.FetchOctoByNameInput.Database = make(chan persistence.Database, 100)
-	m.FetchOctoByNameInput.Name = make(chan string, 100)
-	m.FetchOctoByNameOutput.Octo = make(chan data.Octo, 100)
-	m.FetchOctoByNameOutput.Err = make(chan error, 100)
-	m.CreateOctoCalled = make(chan bool, 100)
-	m.CreateOctoInput.Ctx = make(chan context.Context, 100)
-	m.CreateOctoInput.Database = make(chan persistence.Database, 100)
-	m.CreateOctoInput.Octo = make(chan data.Octo, 100)
-	m.CreateOctoOutput.OctoId = make(chan int, 100)
-	m.CreateOctoOutput.Err = make(chan error, 100)
-	m.DeleteOctoByNameCalled = make(chan bool, 100)
-	m.DeleteOctoByNameInput.Ctx = make(chan context.Context, 100)
-	m.DeleteOctoByNameInput.Database = make(chan persistence.Database, 100)
-	m.DeleteOctoByNameInput.Name = make(chan string, 100)
-	m.DeleteOctoByNameOutput.Err = make(chan error, 100)
+	m.FetchAllCalled = make(chan bool, 100)
+	m.FetchAllInput.Ctx = make(chan context.Context, 100)
+	m.FetchAllInput.Database = make(chan persistence.Database, 100)
+	m.FetchAllOutput.Octos = make(chan []data.Octo, 100)
+	m.FetchAllOutput.Err = make(chan error, 100)
+	m.FetchByNameCalled = make(chan bool, 100)
+	m.FetchByNameInput.Ctx = make(chan context.Context, 100)
+	m.FetchByNameInput.Database = make(chan persistence.Database, 100)
+	m.FetchByNameInput.Name = make(chan string, 100)
+	m.FetchByNameOutput.Octo = make(chan data.Octo, 100)
+	m.FetchByNameOutput.Err = make(chan error, 100)
+	m.CreateCalled = make(chan bool, 100)
+	m.CreateInput.Ctx = make(chan context.Context, 100)
+	m.CreateInput.Database = make(chan persistence.Database, 100)
+	m.CreateInput.Octo = make(chan data.Octo, 100)
+	m.CreateOutput.OctoId = make(chan int, 100)
+	m.CreateOutput.Err = make(chan error, 100)
+	m.DeleteByNameCalled = make(chan bool, 100)
+	m.DeleteByNameInput.Ctx = make(chan context.Context, 100)
+	m.DeleteByNameInput.Database = make(chan persistence.Database, 100)
+	m.DeleteByNameInput.Name = make(chan string, 100)
+	m.DeleteByNameOutput.Err = make(chan error, 100)
 	return m
 }
-func (m *mockOctoStore) FetchAllOctos(ctx context.Context, database persistence.Database) (octos []data.Octo, err error) {
-	m.FetchAllOctosCalled <- true
-	m.FetchAllOctosInput.Ctx <- ctx
-	m.FetchAllOctosInput.Database <- database
-	return <-m.FetchAllOctosOutput.Octos, <-m.FetchAllOctosOutput.Err
+func (m *mockOctoStore) FetchAll(ctx context.Context, database persistence.Database) (octos []data.Octo, err error) {
+	m.FetchAllCalled <- true
+	m.FetchAllInput.Ctx <- ctx
+	m.FetchAllInput.Database <- database
+	return <-m.FetchAllOutput.Octos, <-m.FetchAllOutput.Err
 }
-func (m *mockOctoStore) FetchOctoByName(ctx context.Context, database persistence.Database, name string) (octo data.Octo, err error) {
-	m.FetchOctoByNameCalled <- true
-	m.FetchOctoByNameInput.Ctx <- ctx
-	m.FetchOctoByNameInput.Database <- database
-	m.FetchOctoByNameInput.Name <- name
-	return <-m.FetchOctoByNameOutput.Octo, <-m.FetchOctoByNameOutput.Err
+func (m *mockOctoStore) FetchByName(ctx context.Context, database persistence.Database, name string) (octo data.Octo, err error) {
+	m.FetchByNameCalled <- true
+	m.FetchByNameInput.Ctx <- ctx
+	m.FetchByNameInput.Database <- database
+	m.FetchByNameInput.Name <- name
+	return <-m.FetchByNameOutput.Octo, <-m.FetchByNameOutput.Err
 }
-func (m *mockOctoStore) CreateOcto(ctx context.Context, database persistence.Database, octo data.Octo) (octoId int, err error) {
-	m.CreateOctoCalled <- true
-	m.CreateOctoInput.Ctx <- ctx
-	m.CreateOctoInput.Database <- database
-	m.CreateOctoInput.Octo <- octo
-	return <-m.CreateOctoOutput.OctoId, <-m.CreateOctoOutput.Err
+func (m *mockOctoStore) Create(ctx context.Context, database persistence.Database, octo data.Octo) (octoId int, err error) {
+	m.CreateCalled <- true
+	m.CreateInput.Ctx <- ctx
+	m.CreateInput.Database <- database
+	m.CreateInput.Octo <- octo
+	return <-m.CreateOutput.OctoId, <-m.CreateOutput.Err
 }
-func (m *mockOctoStore) DeleteOctoByName(ctx context.Context, database persistence.Database, name string) (err error) {
-	m.DeleteOctoByNameCalled <- true
-	m.DeleteOctoByNameInput.Ctx <- ctx
-	m.DeleteOctoByNameInput.Database <- database
-	m.DeleteOctoByNameInput.Name <- name
-	return <-m.DeleteOctoByNameOutput.Err
+func (m *mockOctoStore) DeleteByName(ctx context.Context, database persistence.Database, name string) (err error) {
+	m.DeleteByNameCalled <- true
+	m.DeleteByNameInput.Ctx <- ctx
+	m.DeleteByNameInput.Database <- database
+	m.DeleteByNameInput.Name <- name
+	return <-m.DeleteByNameOutput.Err
 }
 
 type mockContext struct {

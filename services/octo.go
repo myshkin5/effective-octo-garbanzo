@@ -10,10 +10,10 @@ import (
 )
 
 type OctoStore interface {
-	FetchAllOctos(ctx context.Context, database persistence.Database) (octos []data.Octo, err error)
-	FetchOctoByName(ctx context.Context, database persistence.Database, name string) (octo data.Octo, err error)
-	CreateOcto(ctx context.Context, database persistence.Database, octo data.Octo) (octoId int, err error)
-	DeleteOctoByName(ctx context.Context, database persistence.Database, name string) (err error)
+	FetchAll(ctx context.Context, database persistence.Database) (octos []data.Octo, err error)
+	FetchByName(ctx context.Context, database persistence.Database, name string) (octo data.Octo, err error)
+	Create(ctx context.Context, database persistence.Database, octo data.Octo) (octoId int, err error)
+	DeleteByName(ctx context.Context, database persistence.Database, name string) (err error)
 }
 
 type OctoService struct {
@@ -28,21 +28,21 @@ func NewOctoService(store OctoStore, database persistence.Database) *OctoService
 	}
 }
 
-func (s *OctoService) FetchAllOctos(ctx context.Context) ([]data.Octo, error) {
-	return s.store.FetchAllOctos(ctx, s.database)
+func (s *OctoService) FetchAll(ctx context.Context) ([]data.Octo, error) {
+	return s.store.FetchAll(ctx, s.database)
 }
 
-func (s *OctoService) FetchOctoByName(ctx context.Context, name string) (data.Octo, error) {
-	return s.store.FetchOctoByName(ctx, s.database, name)
+func (s *OctoService) FetchByName(ctx context.Context, name string) (data.Octo, error) {
+	return s.store.FetchByName(ctx, s.database, name)
 }
 
-func (s *OctoService) CreateOcto(ctx context.Context, octo data.Octo) (data.Octo, error) {
+func (s *OctoService) Create(ctx context.Context, octo data.Octo) (data.Octo, error) {
 	err := s.validate(octo)
 	if err != nil {
 		return data.Octo{}, err
 	}
 
-	octo.Id, err = s.store.CreateOcto(ctx, s.database, octo)
+	octo.Id, err = s.store.Create(ctx, s.database, octo)
 	if err != nil {
 		return data.Octo{}, err
 	}
@@ -67,6 +67,6 @@ func (s *OctoService) validate(octo data.Octo) error {
 	return nil
 }
 
-func (s *OctoService) DeleteOctoByName(ctx context.Context, name string) error {
-	return s.store.DeleteOctoByName(ctx, s.database, name)
+func (s *OctoService) DeleteByName(ctx context.Context, name string) error {
+	return s.store.DeleteByName(ctx, s.database, name)
 }

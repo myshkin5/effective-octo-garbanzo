@@ -42,10 +42,10 @@ var _ = Describe("Octo", func() {
 				request, err = http.NewRequest(http.MethodGet, "/octos/kraken", nil)
 				Expect(err).NotTo(HaveOccurred())
 
-				mockService.FetchOctoByNameOutput.Octo <- data.Octo{
+				mockService.FetchByNameOutput.Octo <- data.Octo{
 					Name: "kraken",
 				}
-				mockService.FetchOctoByNameOutput.Err <- nil
+				mockService.FetchByNameOutput.Err <- nil
 
 				router.ServeHTTP(recorder, request)
 			})
@@ -70,8 +70,8 @@ var _ = Describe("Octo", func() {
 					request, err = http.NewRequest(http.MethodGet, "/octos/kraken", nil)
 					Expect(err).NotTo(HaveOccurred())
 
-					mockService.FetchOctoByNameOutput.Octo <- data.Octo{}
-					mockService.FetchOctoByNameOutput.Err <- errors.New("bad stuff")
+					mockService.FetchByNameOutput.Octo <- data.Octo{}
+					mockService.FetchByNameOutput.Err <- errors.New("bad stuff")
 
 					router.ServeHTTP(recorder, request)
 				})
@@ -95,8 +95,8 @@ var _ = Describe("Octo", func() {
 					request, err = http.NewRequest(http.MethodGet, "/octos/squidward", nil)
 					Expect(err).NotTo(HaveOccurred())
 
-					mockService.FetchOctoByNameOutput.Octo <- data.Octo{}
-					mockService.FetchOctoByNameOutput.Err <- persistence.ErrNotFound
+					mockService.FetchByNameOutput.Octo <- data.Octo{}
+					mockService.FetchByNameOutput.Err <- persistence.ErrNotFound
 
 					router.ServeHTTP(recorder, request)
 				})
@@ -123,7 +123,7 @@ var _ = Describe("Octo", func() {
 				request, err = http.NewRequest("DELETE", "/octos/kraken", nil)
 				Expect(err).NotTo(HaveOccurred())
 
-				mockService.DeleteOctoByNameOutput.Err <- nil
+				mockService.DeleteByNameOutput.Err <- nil
 
 				router.ServeHTTP(recorder, request)
 			})
@@ -144,7 +144,7 @@ var _ = Describe("Octo", func() {
 					request, err = http.NewRequest(http.MethodDelete, "/octos/kraken", nil)
 					Expect(err).NotTo(HaveOccurred())
 
-					mockService.DeleteOctoByNameOutput.Err <- errors.New("bad stuff")
+					mockService.DeleteByNameOutput.Err <- errors.New("bad stuff")
 
 					router.ServeHTTP(recorder, request)
 				})
@@ -168,7 +168,7 @@ var _ = Describe("Octo", func() {
 					request, err = http.NewRequest(http.MethodDelete, "/octos/squidward", nil)
 					Expect(err).NotTo(HaveOccurred())
 
-					mockService.DeleteOctoByNameOutput.Err <- persistence.ErrNotFound
+					mockService.DeleteByNameOutput.Err <- persistence.ErrNotFound
 
 					router.ServeHTTP(recorder, request)
 				})

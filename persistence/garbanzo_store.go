@@ -11,7 +11,7 @@ import (
 
 type GarbanzoStore struct{}
 
-func (GarbanzoStore) FetchAllGarbanzos(ctx context.Context, database Database) ([]data.Garbanzo, error) {
+func (GarbanzoStore) FetchAll(ctx context.Context, database Database) ([]data.Garbanzo, error) {
 	query := "select id, api_uuid, garbanzo_type_id, octo_id, diameter_mm from garbanzo order by id"
 
 	rows, err := database.Query(ctx, query)
@@ -45,7 +45,7 @@ func (GarbanzoStore) FetchAllGarbanzos(ctx context.Context, database Database) (
 	return garbanzos, nil
 }
 
-func (GarbanzoStore) FetchGarbanzoByAPIUUID(ctx context.Context, database Database, apiUUID uuid.UUID) (data.Garbanzo, error) {
+func (GarbanzoStore) FetchByAPIUUID(ctx context.Context, database Database, apiUUID uuid.UUID) (data.Garbanzo, error) {
 	query := "select id, garbanzo_type_id, octo_id, diameter_mm from garbanzo where api_uuid = $1"
 
 	var id int
@@ -68,13 +68,13 @@ func (GarbanzoStore) FetchGarbanzoByAPIUUID(ctx context.Context, database Databa
 	}, nil
 }
 
-func (GarbanzoStore) CreateGarbanzo(ctx context.Context, database Database, garbanzo data.Garbanzo) (int, error) {
+func (GarbanzoStore) Create(ctx context.Context, database Database, garbanzo data.Garbanzo) (int, error) {
 	query := "insert into garbanzo (api_uuid, garbanzo_type_id, octo_id, diameter_mm) " +
 		"values ($1, $2, $3, $4) returning id"
 	return ExecInsert(ctx, database, query, garbanzo.APIUUID, garbanzo.GarbanzoType, garbanzo.OctoId, garbanzo.DiameterMM)
 }
 
-func (GarbanzoStore) DeleteGarbanzoByAPIUUID(ctx context.Context, database Database, apiUUID uuid.UUID) error {
+func (GarbanzoStore) DeleteByAPIUUID(ctx context.Context, database Database, apiUUID uuid.UUID) error {
 	query := "delete from garbanzo where api_uuid = $1"
 	return ExecDelete(ctx, database, query, apiUUID)
 }

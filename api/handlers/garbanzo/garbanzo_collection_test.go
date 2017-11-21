@@ -44,8 +44,8 @@ var _ = Describe("GarbanzoCollection", func() {
 				request, err = http.NewRequest(http.MethodGet, url, nil)
 				Expect(err).NotTo(HaveOccurred())
 
-				mockService.FetchAllGarbanzosOutput.Garbanzos <- []data.Garbanzo{}
-				mockService.FetchAllGarbanzosOutput.Err <- nil
+				mockService.FetchAllOutput.Garbanzos <- []data.Garbanzo{}
+				mockService.FetchAllOutput.Err <- nil
 
 				router.ServeHTTP(recorder, request)
 			})
@@ -73,7 +73,7 @@ var _ = Describe("GarbanzoCollection", func() {
 				apiUUID1 = uuid.NewV4()
 				apiUUID2 = uuid.NewV4()
 
-				mockService.FetchAllGarbanzosOutput.Garbanzos <- []data.Garbanzo{
+				mockService.FetchAllOutput.Garbanzos <- []data.Garbanzo{
 					{
 						APIUUID:      apiUUID1,
 						GarbanzoType: data.DESI,
@@ -85,7 +85,7 @@ var _ = Describe("GarbanzoCollection", func() {
 						DiameterMM:   6.4,
 					},
 				}
-				mockService.FetchAllGarbanzosOutput.Err <- nil
+				mockService.FetchAllOutput.Err <- nil
 
 				router.ServeHTTP(recorder, request)
 			})
@@ -116,8 +116,8 @@ var _ = Describe("GarbanzoCollection", func() {
 				request, err = http.NewRequest(http.MethodGet, url, nil)
 				Expect(err).NotTo(HaveOccurred())
 
-				mockService.FetchAllGarbanzosOutput.Garbanzos <- nil
-				mockService.FetchAllGarbanzosOutput.Err <- errors.New("bad stuff")
+				mockService.FetchAllOutput.Garbanzos <- nil
+				mockService.FetchAllOutput.Err <- errors.New("bad stuff")
 
 				router.ServeHTTP(recorder, request)
 			})
@@ -154,24 +154,24 @@ var _ = Describe("GarbanzoCollection", func() {
 
 				apiUUID = uuid.NewV4()
 
-				mockService.CreateGarbanzoOutput.GarbanzoOut <- data.Garbanzo{
+				mockService.CreateOutput.GarbanzoOut <- data.Garbanzo{
 					Id:           234,
 					APIUUID:      apiUUID,
 					GarbanzoType: data.DESI,
 					DiameterMM:   4.2,
 				}
-				mockService.CreateGarbanzoOutput.Err <- nil
+				mockService.CreateOutput.Err <- nil
 
 				router.ServeHTTP(recorder, request)
 			})
 
 			It("creates the garbanzo via the service", func() {
-				Expect(mockService.CreateGarbanzoCalled).To(HaveLen(1))
+				Expect(mockService.CreateCalled).To(HaveLen(1))
 				var octoName string
-				Expect(mockService.CreateGarbanzoInput.OctoName).To(Receive(&octoName))
+				Expect(mockService.CreateInput.OctoName).To(Receive(&octoName))
 				Expect(octoName).To(Equal("kraken"))
 				var garbanzo data.Garbanzo
-				Expect(mockService.CreateGarbanzoInput.GarbanzoIn).To(Receive(&garbanzo))
+				Expect(mockService.CreateInput.GarbanzoIn).To(Receive(&garbanzo))
 				Expect(garbanzo).To(Equal(data.Garbanzo{
 					GarbanzoType: data.DESI,
 					DiameterMM:   4.2,
@@ -252,8 +252,8 @@ var _ = Describe("GarbanzoCollection", func() {
 					request, err = http.NewRequest(http.MethodPost, url, body)
 					Expect(err).NotTo(HaveOccurred())
 
-					mockService.CreateGarbanzoOutput.GarbanzoOut <- data.Garbanzo{}
-					mockService.CreateGarbanzoOutput.Err <- errors.New("not good")
+					mockService.CreateOutput.GarbanzoOut <- data.Garbanzo{}
+					mockService.CreateOutput.Err <- errors.New("not good")
 
 					router.ServeHTTP(recorder, request)
 				})
@@ -281,8 +281,8 @@ var _ = Describe("GarbanzoCollection", func() {
 					request, err = http.NewRequest(http.MethodPost, url, body)
 					Expect(err).NotTo(HaveOccurred())
 
-					mockService.CreateGarbanzoOutput.GarbanzoOut <- data.Garbanzo{}
-					mockService.CreateGarbanzoOutput.Err <- persistence.ErrNotFound
+					mockService.CreateOutput.GarbanzoOut <- data.Garbanzo{}
+					mockService.CreateOutput.Err <- persistence.ErrNotFound
 
 					router.ServeHTTP(recorder, request)
 				})

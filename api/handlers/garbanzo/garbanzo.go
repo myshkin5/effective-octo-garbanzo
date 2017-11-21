@@ -27,10 +27,10 @@ var fieldMapping = map[string]string{
 }
 
 type GarbanzoService interface {
-	FetchAllGarbanzos(ctx context.Context) (garbanzos []data.Garbanzo, err error)
-	FetchGarbanzoByAPIUUID(ctx context.Context, apiUUID uuid.UUID) (garbanzo data.Garbanzo, err error)
-	CreateGarbanzo(ctx context.Context, octoName string, garbanzoIn data.Garbanzo) (garbanzoOut data.Garbanzo, err error)
-	DeleteGarbanzoByAPIUUID(ctx context.Context, apiUUID uuid.UUID) (err error)
+	FetchAll(ctx context.Context) (garbanzos []data.Garbanzo, err error)
+	FetchByAPIUUID(ctx context.Context, apiUUID uuid.UUID) (garbanzo data.Garbanzo, err error)
+	Create(ctx context.Context, octoName string, garbanzoIn data.Garbanzo) (garbanzoOut data.Garbanzo, err error)
+	DeleteByAPIUUID(ctx context.Context, apiUUID uuid.UUID) (err error)
 }
 
 type garbanzo struct {
@@ -57,7 +57,7 @@ func (g *garbanzo) get(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	garbanzo, err := g.garbanzoService.FetchGarbanzoByAPIUUID(req.Context(), apiUUID)
+	garbanzo, err := g.garbanzoService.FetchByAPIUUID(req.Context(), apiUUID)
 	if err == persistence.ErrNotFound {
 		handlers.Error(w, fmt.Sprintf("Garbanzo %s not found", apiUUID), http.StatusNotFound, err, fieldMapping)
 		return
@@ -77,7 +77,7 @@ func (g *garbanzo) delete(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err = g.garbanzoService.DeleteGarbanzoByAPIUUID(req.Context(), apiUUID)
+	err = g.garbanzoService.DeleteByAPIUUID(req.Context(), apiUUID)
 	if err == persistence.ErrNotFound {
 		handlers.Error(w, fmt.Sprintf("Garbanzo %s not found", apiUUID), http.StatusNotFound, err, fieldMapping)
 		return
