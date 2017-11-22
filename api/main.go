@@ -16,10 +16,13 @@ import (
 	"github.com/myshkin5/effective-octo-garbanzo/logs"
 	"github.com/myshkin5/effective-octo-garbanzo/persistence"
 	"github.com/myshkin5/effective-octo-garbanzo/services"
+	"github.com/myshkin5/effective-octo-garbanzo/utils"
 )
 
 func main() {
 	initLogging()
+
+	utils.InitStackTracer()
 
 	database := initDatabase()
 
