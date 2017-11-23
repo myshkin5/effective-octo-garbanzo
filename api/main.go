@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	_ "net/http/pprof"
 	"os"
 
 	gorilla_handlers "github.com/gorilla/handlers"
@@ -32,7 +33,11 @@ func main() {
 	port := persistence.GetEnvWithDefault("PORT", "8080")
 	router := initRoutes(port, octoService, garbanzoService)
 
-	listenAndServe(port, router)
+	serverAddr := persistence.GetEnvWithDefault("SERVER_ADDR", "localhost")
+
+	initPProf(serverAddr)
+
+	listenAndServe(serverAddr, port, router)
 }
 
 func initLogging() {
@@ -93,8 +98,18 @@ func initRoutes(port string, octoService *services.OctoService, garbanzoService 
 	return router
 }
 
-func listenAndServe(port string, router *mux.Router) {
-	serverAddr := persistence.GetEnvWithDefault("SERVER_ADDR", "localhost")
+func initPProf(serverAddr string) {
+	// Typically 6060
+	pprofPort, ok := os.LookupEnv("PPROF_PORT")
+	if ok {
+		logs.Logger.Infof("PProf listening on %s:%s...", serverAddr, pprofPort)
+		go func() {
+			logs.Logger.Info(http.ListenAndServe(serverAddr+":"+pprofPort, nil))
+		}()
+	}
+}
+
+func listenAndServe(serverAddr, port string, router *mux.Router) {
 	logs.Logger.Infof("Listening on %s:%s...", serverAddr, port)
 	err := http.ListenAndServe(serverAddr+":"+port, router)
 	if err != nil {

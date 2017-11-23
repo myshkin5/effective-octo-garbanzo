@@ -20,7 +20,7 @@ func InitStackTracer() {
 			logs.Logger.Info("=== Received SIGQUIT - goroutine stacks ===")
 			stacklen := runtime.Stack(buf, true)
 			logs.Logger.Info(string(buf[:stacklen]))
-			logs.Logger.Info("=== Stack traced ===")
+			logs.Logger.Info("=== Stacks traced ===")
 		}
 	}()
 }
