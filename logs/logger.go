@@ -11,17 +11,18 @@ var (
 )
 
 type ExternalLogger interface {
+	Error(args ...interface{})
 	Errorf(format string, args ...interface{})
 	Info(args ...interface{})
 	Infof(format string, args ...interface{})
 	Panic(args ...interface{})
+	Panicf(format string, args ...interface{})
 	Warn(args ...interface{})
+	Warnf(format string, args ...interface{})
 }
 
 func init() {
-	Logger = logrus.WithFields(logrus.Fields{
-		"service_name": "effective-octo-garbanzo",
-	})
+	Logger = logrus.WithField("service_name", "effective-octo-garbanzo")
 	logrus.SetFormatter(&JSONFormatter{
 		FieldMap: FieldMap{
 			FieldKeyTime:  "@timestamp",

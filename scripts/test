@@ -27,7 +27,7 @@ set -e
 cd $(dirname $0)/..
 
 stop-integration-services() {
-    docker-compose --file scripts/postgres-docker-compose.yml down
+    docker-compose --file scripts/integration-docker-compose.yml down
 }
 
 DOCKER_STARTED=0
@@ -42,7 +42,7 @@ trap 'error-trap' ERR
 
 find . -name \*.coverprofile -exec rm {} \;
 
-goimports -w $(ls | grep -Ev "LICENSE|README.md|vendor")
+goimports -w $(ls | grep -Ev "LICENSE|README.md|vendor|Dockerfile")
 
 INTEGRATION_REGEXP=".* Integration"
 GINKGO_OPTS="-r
@@ -65,15 +65,21 @@ done
 
 echo -e "\033[1m\033[42m Integration tests...                                                           \033[0m"
 
-docker-compose --file ./scripts/postgres-docker-compose.yml up -d --force-recreate
+./scripts/build
+
+stop-integration-services
+docker-compose --file ./scripts/integration-docker-compose.yml up -d --force-recreate
 DOCKER_STARTED=1
 
 export DB_SERVER=localhost
-export DB_PORT=5678
+export DB_PORT=$(docker port effective-octo-garbanzo-integration-postgres 5432/tcp | cut -d : -f 2)
 export DB_USERNAME=garbanzo
 export DB_PASSWORD=garbanzo-secret
 
-go run persistence/migrate/main.go
+# Good health means the DB migration script was successful and integration tests can proceed
+until curl --silent http://0.0.0.0:8080/health > /dev/null ; do
+    sleep 1
+done
 
 ginkgo -r --focus="$INTEGRATION_REGEXP" $GINKGO_OPTS
 

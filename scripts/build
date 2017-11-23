@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -e
+
+cd $(dirname $0)/..
+
+mkdir -p tmp/persistence/ddl
+cp persistence/ddl/* tmp/persistence/ddl
+
+GOOS=linux GOARCH=amd64 go build -o tmp/effective-octo-garbanzo github.com/myshkin5/effective-octo-garbanzo/api
+
+docker build -t myshkin5/effective-octo-garbanzo:latest .

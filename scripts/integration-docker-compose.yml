@@ -1,0 +1,21 @@
+version: "3"
+services:
+  effective-octo-garbanzo:
+    container_name: effective-octo-garbanzo-integration
+    image: myshkin5/effective-octo-garbanzo:latest
+    ports:
+      # Note a randomly assigned port doesn't work here because the service needs to know the port for use in BASE_URL
+      - "8080:8080"
+    links:
+      - postgres
+    environment:
+      - DB_SERVER=postgres
+      - SERVER_ADDR=0.0.0.0
+  postgres:
+    container_name: effective-octo-garbanzo-integration-postgres
+    image: postgres:latest
+    ports:
+      - "5432"
+    environment:
+      - POSTGRES_USER=garbanzo
+      - POSTGRES_PASSWORD=garbanzo-secret
