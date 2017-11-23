@@ -7,22 +7,24 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	"github.com/myshkin5/effective-octo-garbanzo/api/handlers/octo"
-	"github.com/myshkin5/effective-octo-garbanzo/logs"
 )
 
 var _ = Describe("API", func() {
 	quickCreateOctos := func(count int, url string, errs chan error, wg *sync.WaitGroup) {
 		defer wg.Done()
 
+		nanos := time.Now().UnixNano()
+
 		for i := 0; i < count; i++ {
 			body := fmt.Sprintf(`{
-					"name": "stress_1_%d"
-				}`, i)
+					"name": "stress_%d_%d"
+				}`, nanos, i)
 			response, err := http.Post(url+"octos", "application/json", strings.NewReader(body))
 			if err != nil {
 				errs <- err
@@ -32,6 +34,11 @@ var _ = Describe("API", func() {
 			if response.StatusCode != http.StatusCreated {
 				errs <- fmt.Errorf("create octos expecting status %d, got %d", http.StatusCreated, response.StatusCode)
 				continue
+			}
+
+			err = response.Body.Close()
+			if err != nil {
+				errs <- err
 			}
 		}
 	}
@@ -58,6 +65,11 @@ var _ = Describe("API", func() {
 				continue
 			}
 
+			err = response.Body.Close()
+			if err != nil {
+				errs <- err
+			}
+
 			if len(list) == 0 {
 				continue
 			}
@@ -78,12 +90,16 @@ var _ = Describe("API", func() {
 				errs <- fmt.Errorf("deleting octos expecting status %d, got %d", http.StatusNoContent, response.StatusCode)
 				continue
 			}
+
+			err = response.Body.Close()
+			if err != nil {
+				errs <- err
+			}
 		}
 	}
 
 	Measure("the standard suite of operations", func(b Benchmarker) {
 		b.Time("runtime", func() {
-
 			url := "http://localhost:8080/"
 			errs := make(chan error, 2000)
 
@@ -98,10 +114,10 @@ var _ = Describe("API", func() {
 			count := len(errs)
 
 			for err := range errs {
-				logs.Logger.Errorf("Test received error: %v", err)
+				fmt.Printf("Test received error: %v\n", err)
 			}
 
 			Expect(count).To(BeZero())
 		})
-	}, 1)
+	}, 3)
 })
