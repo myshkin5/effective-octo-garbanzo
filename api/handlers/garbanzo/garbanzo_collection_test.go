@@ -215,32 +215,31 @@ var _ = Describe("GarbanzoCollection", func() {
 				})
 			})
 
-			// TODO: resurrect?
-			//Context("invalid type", func() {
-			//	BeforeEach(func() {
-			//		var err error
-			//		body := strings.NewReader(`{
-			//			"type":        "RED",
-			//			"diameter-mm": 4.2
-			//		}`)
-			//		request, err = http.NewRequest(http.MethodPost, url, body)
-			//		Expect(err).NotTo(HaveOccurred())
-			//
-			//		router.ServeHTTP(recorder, request)
-			//	})
-			//
-			//	It("returns an internal server error status code", func() {
-			//		Expect(recorder.Code).To(Equal(http.StatusBadRequest))
-			//	})
-			//
-			//	It("returns a JSON error", func() {
-			//		Expect(recorder.Body).To(MatchJSON(`{
-			//			"code": 400,
-			//			"error": "Unknown garbanzo type: RED",
-			//			"status": "Bad Request"
-			//		}`))
-			//	})
-			//})
+			Context("invalid type", func() {
+				BeforeEach(func() {
+					var err error
+					body := strings.NewReader(`{
+						"type":        "RED",
+						"diameter-mm": 4.2
+					}`)
+					request, err = http.NewRequest(http.MethodPost, url, body)
+					Expect(err).NotTo(HaveOccurred())
+
+					router.ServeHTTP(recorder, request)
+				})
+
+				It("returns an internal server error status code", func() {
+					Expect(recorder.Code).To(Equal(http.StatusBadRequest))
+				})
+
+				It("returns a JSON error", func() {
+					Expect(recorder.Body).To(MatchJSON(`{
+						"code": 400,
+						"error": "invalid garbanzo type: RED",
+						"status": "Bad Request"
+					}`))
+				})
+			})
 
 			Context("general persistence error", func() {
 				BeforeEach(func() {
@@ -294,7 +293,7 @@ var _ = Describe("GarbanzoCollection", func() {
 				It("returns a JSON error", func() {
 					Expect(recorder.Body).To(MatchJSON(`{
 						"code": 409,
-						"error": "Error creating new garbanzo",
+						"error": "Parent octo 'kraken' not found",
 						"status": "Conflict"
 					}`))
 				})

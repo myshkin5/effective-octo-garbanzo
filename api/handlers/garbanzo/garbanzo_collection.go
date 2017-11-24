@@ -2,6 +2,7 @@ package garbanzo
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -51,7 +52,11 @@ func (g *garbanzoCollection) post(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	garbanzoType, _ /* TODO */ := data.GarbanzoTypeFromString(dto.GarbanzoType)
+	garbanzoType, err := data.GarbanzoTypeFromString(dto.GarbanzoType)
+	if err != nil {
+		handlers.Error(w, err.Error(), http.StatusBadRequest, err, fieldMapping)
+		return
+	}
 
 	octoName := mux.Vars(req)["octoName"]
 	garbanzo, err := g.garbanzoService.Create(req.Context(), octoName, data.Garbanzo{
@@ -59,8 +64,7 @@ func (g *garbanzoCollection) post(w http.ResponseWriter, req *http.Request) {
 		DiameterMM:   dto.DiameterMM,
 	})
 	if err == persistence.ErrNotFound {
-		// TODO Use ValidationError but with conflict flag
-		handlers.Error(w, "Error creating new garbanzo", http.StatusConflict, err, fieldMapping)
+		handlers.Error(w, fmt.Sprintf("Parent octo '%s' not found", octoName), http.StatusConflict, err, fieldMapping)
 		return
 	} else if err != nil {
 		handlers.Error(w, "Error creating new garbanzo", http.StatusInternalServerError, err, fieldMapping)

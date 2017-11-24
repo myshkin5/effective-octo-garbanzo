@@ -49,7 +49,21 @@ var _ = Describe("Error", func() {
 		})
 
 		It("writes the error to a JSON body", func() {
-			// The errors are in an unordered array so we can't just MatchJSON()
+			/* The errors are in an unordered array so we can't just MatchJSON(). The full doc should look like this:
+			{
+				"code": 400,
+				"error": "bad stuff!",
+				"errors": [
+					"field-a 1",
+					"field-a 2",
+					"field-b 3",
+					"field-b 4",
+					"FieldC 5",
+					"FieldC 6"
+				],
+				"status": "Bad Request"
+			}
+			*/
 			jsonObj := handlers.JSONObject{}
 			err := json.NewDecoder(recorder.Body).Decode(&jsonObj)
 			Expect(err).NotTo(HaveOccurred())
