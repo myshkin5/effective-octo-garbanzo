@@ -13,10 +13,6 @@ import (
 
 var _ = Describe("GarbanzoStore Integration", func() {
 	ctx := context.Background()
-	const (
-		octoName = "test-octo"
-	)
-
 	var (
 		database    persistence.Database
 		store       persistence.GarbanzoStore
@@ -32,7 +28,7 @@ var _ = Describe("GarbanzoStore Integration", func() {
 		Expect(cleanDatabase(database)).To(Succeed())
 
 		octoId, err = persistence.OctoStore{}.Create(ctx, database, data.Octo{
-			Name: octoName,
+			Name: "test-octo",
 		})
 		Expect(err).NotTo(HaveOccurred())
 
@@ -185,13 +181,13 @@ var _ = Describe("GarbanzoStore Integration", func() {
 		})
 	})
 
-	Describe("DeleteByOctoName", func() {
+	Describe("DeleteByOctoId", func() {
 		It("returns no error when attempting to delete garbanzos from an unknown octo", func() {
-			Expect(store.DeleteByOctoName(ctx, database, "never-heard-of-it")).To(Succeed())
+			Expect(store.DeleteByOctoId(ctx, database, 2488)).To(Succeed())
 		})
 
 		It("returns no error when attempting to delete garbanzos from an octo with no garbanzos", func() {
-			Expect(store.DeleteByOctoName(ctx, database, octoName)).To(Succeed())
+			Expect(store.DeleteByOctoId(ctx, database, octoId)).To(Succeed())
 		})
 
 		It("deletes some garbanzos", func() {
@@ -225,7 +221,7 @@ var _ = Describe("GarbanzoStore Integration", func() {
 			Expect(err).NotTo(HaveOccurred())
 			garbanzo3.Id = octoId3
 
-			Expect(store.DeleteByOctoName(ctx, database, octoName)).To(Succeed())
+			Expect(store.DeleteByOctoId(ctx, database, octoId)).To(Succeed())
 
 			garbanzos, err := store.FetchAll(ctx, database)
 			Expect(err).NotTo(HaveOccurred())

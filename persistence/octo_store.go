@@ -63,9 +63,9 @@ func (OctoStore) Create(ctx context.Context, database Database, octo data.Octo) 
 	return ExecInsert(ctx, database, query, octo.Name)
 }
 
-func (OctoStore) DeleteByName(ctx context.Context, database Database, name string) error {
-	query := "delete from octo where name = $1"
-	rowsAffected, err := ExecDelete(ctx, database, query, name)
+func (OctoStore) DeleteById(ctx context.Context, database Database, id int) error {
+	query := "delete from octo where id = $1"
+	rowsAffected, err := ExecDelete(ctx, database, query, id)
 	if err != nil {
 		return err
 	}

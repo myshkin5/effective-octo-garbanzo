@@ -155,9 +155,9 @@ var _ = Describe("OctoStore Integration", func() {
 		})
 	})
 
-	Describe("DeleteByName", func() {
+	Describe("DeleteById", func() {
 		It("returns not found when deleting an unknown octo", func() {
-			err := store.DeleteByName(ctx, database, "squidward")
+			err := store.DeleteById(ctx, database, 8233)
 
 			Expect(err).To(Equal(persistence.ErrNotFound))
 		})
@@ -167,12 +167,12 @@ var _ = Describe("OctoStore Integration", func() {
 				Name: "kraken",
 			}
 
-			_, err := store.Create(ctx, database, octo)
+			id, err := store.Create(ctx, database, octo)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(store.DeleteByName(ctx, database, "kraken")).To(Succeed())
+			Expect(store.DeleteById(ctx, database, id)).To(Succeed())
 
-			err = store.DeleteByName(ctx, database, "kraken")
+			err = store.DeleteById(ctx, database, id)
 			Expect(err).To(Equal(persistence.ErrNotFound))
 		})
 	})

@@ -14,7 +14,7 @@ type GarbanzoStore interface {
 	FetchByAPIUUID(ctx context.Context, database persistence.Database, apiUUID uuid.UUID) (garbanzo data.Garbanzo, err error)
 	Create(ctx context.Context, database persistence.Database, garbanzo data.Garbanzo) (garbanzoId int, err error)
 	DeleteByAPIUUID(ctx context.Context, database persistence.Database, apiUUID uuid.UUID) (err error)
-	DeleteByOctoName(ctx context.Context, database persistence.Database, octoName string) (err error)
+	DeleteByOctoId(ctx context.Context, database persistence.Database, octoId int) (err error)
 }
 
 type GarbanzoService struct {

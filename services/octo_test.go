@@ -172,7 +172,7 @@ var _ = Describe("Octo", func() {
 			}
 			mockOctoStore.FetchByNameOutput.Err <- nil
 
-			mockGarbanzoStore.DeleteByOctoNameOutput.Err <- errors.New("don't bother")
+			mockGarbanzoStore.DeleteByOctoIdOutput.Err <- errors.New("don't bother")
 
 			mockTx.RollbackOutput.Err <- nil
 
@@ -193,9 +193,9 @@ var _ = Describe("Octo", func() {
 			}
 			mockOctoStore.FetchByNameOutput.Err <- nil
 
-			mockGarbanzoStore.DeleteByOctoNameOutput.Err <- nil
+			mockGarbanzoStore.DeleteByOctoIdOutput.Err <- nil
 
-			mockOctoStore.DeleteByNameOutput.Err <- errors.New("some error")
+			mockOctoStore.DeleteByIdOutput.Err <- errors.New("some error")
 
 			mockTx.RollbackOutput.Err <- nil
 
@@ -210,15 +210,16 @@ var _ = Describe("Octo", func() {
 			mockDB.BeginTxOutput.Database <- mockTx
 			mockDB.BeginTxOutput.Err <- nil
 
+			id := 282
 			mockOctoStore.FetchByNameOutput.Octo <- data.Octo{
-				Id:   282,
+				Id:   id,
 				Name: "kraken",
 			}
 			mockOctoStore.FetchByNameOutput.Err <- nil
 
-			mockGarbanzoStore.DeleteByOctoNameOutput.Err <- nil
+			mockGarbanzoStore.DeleteByOctoIdOutput.Err <- nil
 
-			mockOctoStore.DeleteByNameOutput.Err <- nil
+			mockOctoStore.DeleteByIdOutput.Err <- nil
 
 			mockTx.CommitOutput.Err <- nil
 
@@ -239,21 +240,22 @@ var _ = Describe("Octo", func() {
 			Expect(mockOctoStore.FetchByNameInput.SelectForUpdate).To(Receive(&actualSelectForUpdate))
 			Expect(actualSelectForUpdate).To(BeTrue())
 
-			Expect(mockGarbanzoStore.DeleteByOctoNameCalled).To(HaveLen(1))
-			Expect(mockGarbanzoStore.DeleteByOctoNameInput.Database).To(Receive(&actualDB))
+			Expect(mockGarbanzoStore.DeleteByOctoIdCalled).To(HaveLen(1))
+			Expect(mockGarbanzoStore.DeleteByOctoIdInput.Database).To(Receive(&actualDB))
 			Expect(actualDB).To(Equal(mockTx))
-			Expect(mockGarbanzoStore.DeleteByOctoNameInput.Ctx).To(Receive(&actualCtx))
+			Expect(mockGarbanzoStore.DeleteByOctoIdInput.Ctx).To(Receive(&actualCtx))
 			Expect(actualCtx).To(Equal(ctx))
-			Expect(mockGarbanzoStore.DeleteByOctoNameInput.OctoName).To(Receive(&actualName))
-			Expect(actualName).To(Equal("kraken"))
+			var actualId int
+			Expect(mockGarbanzoStore.DeleteByOctoIdInput.OctoId).To(Receive(&actualId))
+			Expect(actualId).To(Equal(id))
 
-			Expect(mockOctoStore.DeleteByNameCalled).To(HaveLen(1))
-			Expect(mockOctoStore.DeleteByNameInput.Database).To(Receive(&actualDB))
+			Expect(mockOctoStore.DeleteByIdCalled).To(HaveLen(1))
+			Expect(mockOctoStore.DeleteByIdInput.Database).To(Receive(&actualDB))
 			Expect(actualDB).To(Equal(mockTx))
-			Expect(mockOctoStore.DeleteByNameInput.Ctx).To(Receive(&actualCtx))
+			Expect(mockOctoStore.DeleteByIdInput.Ctx).To(Receive(&actualCtx))
 			Expect(actualCtx).To(Equal(ctx))
-			Expect(mockOctoStore.DeleteByNameInput.Name).To(Receive(&actualName))
-			Expect(actualName).To(Equal("kraken"))
+			Expect(mockOctoStore.DeleteByIdInput.Id).To(Receive(&actualId))
+			Expect(actualId).To(Equal(id))
 
 			Expect(mockTx.CommitCalled).To(HaveLen(1))
 		})

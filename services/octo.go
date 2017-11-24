@@ -13,7 +13,7 @@ type OctoStore interface {
 	FetchAll(ctx context.Context, database persistence.Database) (octos []data.Octo, err error)
 	FetchByName(ctx context.Context, database persistence.Database, name string, selectForUpdate bool) (octo data.Octo, err error)
 	Create(ctx context.Context, database persistence.Database, octo data.Octo) (octoId int, err error)
-	DeleteByName(ctx context.Context, database persistence.Database, name string) (err error)
+	DeleteById(ctx context.Context, database persistence.Database, id int) (err error)
 }
 
 type OctoService struct {
@@ -82,17 +82,17 @@ func (s *OctoService) DeleteByName(ctx context.Context, name string) error {
 		err = database.Commit()
 	}()
 
-	_, err = s.octoStore.FetchByName(ctx, database, name, true)
+	octo, err := s.octoStore.FetchByName(ctx, database, name, true)
 	if err != nil {
 		return err
 	}
 
-	err = s.garbanzoStore.DeleteByOctoName(ctx, database, name)
+	err = s.garbanzoStore.DeleteByOctoId(ctx, database, octo.Id)
 	if err != nil {
 		return err
 	}
 
-	err = s.octoStore.DeleteByName(ctx, database, name)
+	err = s.octoStore.DeleteById(ctx, database, octo.Id)
 	if err != nil {
 		return err
 	}

@@ -91,9 +91,9 @@ func (GarbanzoStore) DeleteByAPIUUID(ctx context.Context, database Database, api
 	return nil
 }
 
-func (GarbanzoStore) DeleteByOctoName(ctx context.Context, database Database, octoName string) error {
-	query := "delete from garbanzo where octo_id = (select id from octo where name = $1)"
-	_, err := ExecDelete(ctx, database, query, octoName)
+func (GarbanzoStore) DeleteByOctoId(ctx context.Context, database Database, octoId int) error {
+	query := "delete from garbanzo where octo_id = $1"
+	_, err := ExecDelete(ctx, database, query, octoId)
 	if err != nil {
 		return err
 	}

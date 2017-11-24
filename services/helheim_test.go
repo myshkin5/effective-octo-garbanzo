@@ -15,104 +15,6 @@ import (
 	"github.com/satori/go.uuid"
 )
 
-type mockOctoStore struct {
-	FetchAllCalled chan bool
-	FetchAllInput  struct {
-		Ctx      chan context.Context
-		Database chan persistence.Database
-	}
-	FetchAllOutput struct {
-		Octos chan []data.Octo
-		Err   chan error
-	}
-	FetchByNameCalled chan bool
-	FetchByNameInput  struct {
-		Ctx             chan context.Context
-		Database        chan persistence.Database
-		Name            chan string
-		SelectForUpdate chan bool
-	}
-	FetchByNameOutput struct {
-		Octo chan data.Octo
-		Err  chan error
-	}
-	CreateCalled chan bool
-	CreateInput  struct {
-		Ctx      chan context.Context
-		Database chan persistence.Database
-		Octo     chan data.Octo
-	}
-	CreateOutput struct {
-		OctoId chan int
-		Err    chan error
-	}
-	DeleteByNameCalled chan bool
-	DeleteByNameInput  struct {
-		Ctx      chan context.Context
-		Database chan persistence.Database
-		Name     chan string
-	}
-	DeleteByNameOutput struct {
-		Err chan error
-	}
-}
-
-func newMockOctoStore() *mockOctoStore {
-	m := &mockOctoStore{}
-	m.FetchAllCalled = make(chan bool, 100)
-	m.FetchAllInput.Ctx = make(chan context.Context, 100)
-	m.FetchAllInput.Database = make(chan persistence.Database, 100)
-	m.FetchAllOutput.Octos = make(chan []data.Octo, 100)
-	m.FetchAllOutput.Err = make(chan error, 100)
-	m.FetchByNameCalled = make(chan bool, 100)
-	m.FetchByNameInput.Ctx = make(chan context.Context, 100)
-	m.FetchByNameInput.Database = make(chan persistence.Database, 100)
-	m.FetchByNameInput.Name = make(chan string, 100)
-	m.FetchByNameInput.SelectForUpdate = make(chan bool, 100)
-	m.FetchByNameOutput.Octo = make(chan data.Octo, 100)
-	m.FetchByNameOutput.Err = make(chan error, 100)
-	m.CreateCalled = make(chan bool, 100)
-	m.CreateInput.Ctx = make(chan context.Context, 100)
-	m.CreateInput.Database = make(chan persistence.Database, 100)
-	m.CreateInput.Octo = make(chan data.Octo, 100)
-	m.CreateOutput.OctoId = make(chan int, 100)
-	m.CreateOutput.Err = make(chan error, 100)
-	m.DeleteByNameCalled = make(chan bool, 100)
-	m.DeleteByNameInput.Ctx = make(chan context.Context, 100)
-	m.DeleteByNameInput.Database = make(chan persistence.Database, 100)
-	m.DeleteByNameInput.Name = make(chan string, 100)
-	m.DeleteByNameOutput.Err = make(chan error, 100)
-	return m
-}
-func (m *mockOctoStore) FetchAll(ctx context.Context, database persistence.Database) (octos []data.Octo, err error) {
-	m.FetchAllCalled <- true
-	m.FetchAllInput.Ctx <- ctx
-	m.FetchAllInput.Database <- database
-	return <-m.FetchAllOutput.Octos, <-m.FetchAllOutput.Err
-}
-func (m *mockOctoStore) FetchByName(ctx context.Context, database persistence.Database, name string, selectForUpdate bool) (octo data.Octo, err error) {
-	m.FetchByNameCalled <- true
-	m.FetchByNameInput.Ctx <- ctx
-	m.FetchByNameInput.Database <- database
-	m.FetchByNameInput.Name <- name
-	m.FetchByNameInput.SelectForUpdate <- selectForUpdate
-	return <-m.FetchByNameOutput.Octo, <-m.FetchByNameOutput.Err
-}
-func (m *mockOctoStore) Create(ctx context.Context, database persistence.Database, octo data.Octo) (octoId int, err error) {
-	m.CreateCalled <- true
-	m.CreateInput.Ctx <- ctx
-	m.CreateInput.Database <- database
-	m.CreateInput.Octo <- octo
-	return <-m.CreateOutput.OctoId, <-m.CreateOutput.Err
-}
-func (m *mockOctoStore) DeleteByName(ctx context.Context, database persistence.Database, name string) (err error) {
-	m.DeleteByNameCalled <- true
-	m.DeleteByNameInput.Ctx <- ctx
-	m.DeleteByNameInput.Database <- database
-	m.DeleteByNameInput.Name <- name
-	return <-m.DeleteByNameOutput.Err
-}
-
 type mockGarbanzoStore struct {
 	FetchAllCalled chan bool
 	FetchAllInput  struct {
@@ -152,13 +54,13 @@ type mockGarbanzoStore struct {
 	DeleteByAPIUUIDOutput struct {
 		Err chan error
 	}
-	DeleteByOctoNameCalled chan bool
-	DeleteByOctoNameInput  struct {
+	DeleteByOctoIdCalled chan bool
+	DeleteByOctoIdInput  struct {
 		Ctx      chan context.Context
 		Database chan persistence.Database
-		OctoName chan string
+		OctoId   chan int
 	}
-	DeleteByOctoNameOutput struct {
+	DeleteByOctoIdOutput struct {
 		Err chan error
 	}
 }
@@ -187,11 +89,11 @@ func newMockGarbanzoStore() *mockGarbanzoStore {
 	m.DeleteByAPIUUIDInput.Database = make(chan persistence.Database, 100)
 	m.DeleteByAPIUUIDInput.ApiUUID = make(chan uuid.UUID, 100)
 	m.DeleteByAPIUUIDOutput.Err = make(chan error, 100)
-	m.DeleteByOctoNameCalled = make(chan bool, 100)
-	m.DeleteByOctoNameInput.Ctx = make(chan context.Context, 100)
-	m.DeleteByOctoNameInput.Database = make(chan persistence.Database, 100)
-	m.DeleteByOctoNameInput.OctoName = make(chan string, 100)
-	m.DeleteByOctoNameOutput.Err = make(chan error, 100)
+	m.DeleteByOctoIdCalled = make(chan bool, 100)
+	m.DeleteByOctoIdInput.Ctx = make(chan context.Context, 100)
+	m.DeleteByOctoIdInput.Database = make(chan persistence.Database, 100)
+	m.DeleteByOctoIdInput.OctoId = make(chan int, 100)
+	m.DeleteByOctoIdOutput.Err = make(chan error, 100)
 	return m
 }
 func (m *mockGarbanzoStore) FetchAll(ctx context.Context, database persistence.Database) (garbanzos []data.Garbanzo, err error) {
@@ -221,12 +123,165 @@ func (m *mockGarbanzoStore) DeleteByAPIUUID(ctx context.Context, database persis
 	m.DeleteByAPIUUIDInput.ApiUUID <- apiUUID
 	return <-m.DeleteByAPIUUIDOutput.Err
 }
-func (m *mockGarbanzoStore) DeleteByOctoName(ctx context.Context, database persistence.Database, octoName string) (err error) {
-	m.DeleteByOctoNameCalled <- true
-	m.DeleteByOctoNameInput.Ctx <- ctx
-	m.DeleteByOctoNameInput.Database <- database
-	m.DeleteByOctoNameInput.OctoName <- octoName
-	return <-m.DeleteByOctoNameOutput.Err
+func (m *mockGarbanzoStore) DeleteByOctoId(ctx context.Context, database persistence.Database, octoId int) (err error) {
+	m.DeleteByOctoIdCalled <- true
+	m.DeleteByOctoIdInput.Ctx <- ctx
+	m.DeleteByOctoIdInput.Database <- database
+	m.DeleteByOctoIdInput.OctoId <- octoId
+	return <-m.DeleteByOctoIdOutput.Err
+}
+
+type mockOctoStore struct {
+	FetchAllCalled chan bool
+	FetchAllInput  struct {
+		Ctx      chan context.Context
+		Database chan persistence.Database
+	}
+	FetchAllOutput struct {
+		Octos chan []data.Octo
+		Err   chan error
+	}
+	FetchByNameCalled chan bool
+	FetchByNameInput  struct {
+		Ctx             chan context.Context
+		Database        chan persistence.Database
+		Name            chan string
+		SelectForUpdate chan bool
+	}
+	FetchByNameOutput struct {
+		Octo chan data.Octo
+		Err  chan error
+	}
+	CreateCalled chan bool
+	CreateInput  struct {
+		Ctx      chan context.Context
+		Database chan persistence.Database
+		Octo     chan data.Octo
+	}
+	CreateOutput struct {
+		OctoId chan int
+		Err    chan error
+	}
+	DeleteByIdCalled chan bool
+	DeleteByIdInput  struct {
+		Ctx      chan context.Context
+		Database chan persistence.Database
+		Id       chan int
+	}
+	DeleteByIdOutput struct {
+		Err chan error
+	}
+}
+
+func newMockOctoStore() *mockOctoStore {
+	m := &mockOctoStore{}
+	m.FetchAllCalled = make(chan bool, 100)
+	m.FetchAllInput.Ctx = make(chan context.Context, 100)
+	m.FetchAllInput.Database = make(chan persistence.Database, 100)
+	m.FetchAllOutput.Octos = make(chan []data.Octo, 100)
+	m.FetchAllOutput.Err = make(chan error, 100)
+	m.FetchByNameCalled = make(chan bool, 100)
+	m.FetchByNameInput.Ctx = make(chan context.Context, 100)
+	m.FetchByNameInput.Database = make(chan persistence.Database, 100)
+	m.FetchByNameInput.Name = make(chan string, 100)
+	m.FetchByNameInput.SelectForUpdate = make(chan bool, 100)
+	m.FetchByNameOutput.Octo = make(chan data.Octo, 100)
+	m.FetchByNameOutput.Err = make(chan error, 100)
+	m.CreateCalled = make(chan bool, 100)
+	m.CreateInput.Ctx = make(chan context.Context, 100)
+	m.CreateInput.Database = make(chan persistence.Database, 100)
+	m.CreateInput.Octo = make(chan data.Octo, 100)
+	m.CreateOutput.OctoId = make(chan int, 100)
+	m.CreateOutput.Err = make(chan error, 100)
+	m.DeleteByIdCalled = make(chan bool, 100)
+	m.DeleteByIdInput.Ctx = make(chan context.Context, 100)
+	m.DeleteByIdInput.Database = make(chan persistence.Database, 100)
+	m.DeleteByIdInput.Id = make(chan int, 100)
+	m.DeleteByIdOutput.Err = make(chan error, 100)
+	return m
+}
+func (m *mockOctoStore) FetchAll(ctx context.Context, database persistence.Database) (octos []data.Octo, err error) {
+	m.FetchAllCalled <- true
+	m.FetchAllInput.Ctx <- ctx
+	m.FetchAllInput.Database <- database
+	return <-m.FetchAllOutput.Octos, <-m.FetchAllOutput.Err
+}
+func (m *mockOctoStore) FetchByName(ctx context.Context, database persistence.Database, name string, selectForUpdate bool) (octo data.Octo, err error) {
+	m.FetchByNameCalled <- true
+	m.FetchByNameInput.Ctx <- ctx
+	m.FetchByNameInput.Database <- database
+	m.FetchByNameInput.Name <- name
+	m.FetchByNameInput.SelectForUpdate <- selectForUpdate
+	return <-m.FetchByNameOutput.Octo, <-m.FetchByNameOutput.Err
+}
+func (m *mockOctoStore) Create(ctx context.Context, database persistence.Database, octo data.Octo) (octoId int, err error) {
+	m.CreateCalled <- true
+	m.CreateInput.Ctx <- ctx
+	m.CreateInput.Database <- database
+	m.CreateInput.Octo <- octo
+	return <-m.CreateOutput.OctoId, <-m.CreateOutput.Err
+}
+func (m *mockOctoStore) DeleteById(ctx context.Context, database persistence.Database, id int) (err error) {
+	m.DeleteByIdCalled <- true
+	m.DeleteByIdInput.Ctx <- ctx
+	m.DeleteByIdInput.Database <- database
+	m.DeleteByIdInput.Id <- id
+	return <-m.DeleteByIdOutput.Err
+}
+
+type mockContext struct {
+	DeadlineCalled chan bool
+	DeadlineOutput struct {
+		Deadline chan time.Time
+		Ok       chan bool
+	}
+	DoneCalled chan bool
+	DoneOutput struct {
+		Ret0 chan (<-chan struct{})
+	}
+	ErrCalled chan bool
+	ErrOutput struct {
+		Ret0 chan error
+	}
+	ValueCalled chan bool
+	ValueInput  struct {
+		Key chan interface{}
+	}
+	ValueOutput struct {
+		Ret0 chan interface{}
+	}
+}
+
+func newMockContext() *mockContext {
+	m := &mockContext{}
+	m.DeadlineCalled = make(chan bool, 100)
+	m.DeadlineOutput.Deadline = make(chan time.Time, 100)
+	m.DeadlineOutput.Ok = make(chan bool, 100)
+	m.DoneCalled = make(chan bool, 100)
+	m.DoneOutput.Ret0 = make(chan (<-chan struct{}), 100)
+	m.ErrCalled = make(chan bool, 100)
+	m.ErrOutput.Ret0 = make(chan error, 100)
+	m.ValueCalled = make(chan bool, 100)
+	m.ValueInput.Key = make(chan interface{}, 100)
+	m.ValueOutput.Ret0 = make(chan interface{}, 100)
+	return m
+}
+func (m *mockContext) Deadline() (deadline time.Time, ok bool) {
+	m.DeadlineCalled <- true
+	return <-m.DeadlineOutput.Deadline, <-m.DeadlineOutput.Ok
+}
+func (m *mockContext) Done() <-chan struct{} {
+	m.DoneCalled <- true
+	return <-m.DoneOutput.Ret0
+}
+func (m *mockContext) Err() error {
+	m.ErrCalled <- true
+	return <-m.ErrOutput.Ret0
+}
+func (m *mockContext) Value(key interface{}) interface{} {
+	m.ValueCalled <- true
+	m.ValueInput.Key <- key
+	return <-m.ValueOutput.Ret0
 }
 
 type mockDatabase struct {
@@ -339,59 +394,4 @@ func (m *mockDatabase) Commit() (err error) {
 func (m *mockDatabase) Rollback() (err error) {
 	m.RollbackCalled <- true
 	return <-m.RollbackOutput.Err
-}
-
-type mockContext struct {
-	DeadlineCalled chan bool
-	DeadlineOutput struct {
-		Deadline chan time.Time
-		Ok       chan bool
-	}
-	DoneCalled chan bool
-	DoneOutput struct {
-		Ret0 chan (<-chan struct{})
-	}
-	ErrCalled chan bool
-	ErrOutput struct {
-		Ret0 chan error
-	}
-	ValueCalled chan bool
-	ValueInput  struct {
-		Key chan interface{}
-	}
-	ValueOutput struct {
-		Ret0 chan interface{}
-	}
-}
-
-func newMockContext() *mockContext {
-	m := &mockContext{}
-	m.DeadlineCalled = make(chan bool, 100)
-	m.DeadlineOutput.Deadline = make(chan time.Time, 100)
-	m.DeadlineOutput.Ok = make(chan bool, 100)
-	m.DoneCalled = make(chan bool, 100)
-	m.DoneOutput.Ret0 = make(chan (<-chan struct{}), 100)
-	m.ErrCalled = make(chan bool, 100)
-	m.ErrOutput.Ret0 = make(chan error, 100)
-	m.ValueCalled = make(chan bool, 100)
-	m.ValueInput.Key = make(chan interface{}, 100)
-	m.ValueOutput.Ret0 = make(chan interface{}, 100)
-	return m
-}
-func (m *mockContext) Deadline() (deadline time.Time, ok bool) {
-	m.DeadlineCalled <- true
-	return <-m.DeadlineOutput.Deadline, <-m.DeadlineOutput.Ok
-}
-func (m *mockContext) Done() <-chan struct{} {
-	m.DoneCalled <- true
-	return <-m.DoneOutput.Ret0
-}
-func (m *mockContext) Err() error {
-	m.ErrCalled <- true
-	return <-m.ErrOutput.Ret0
-}
-func (m *mockContext) Value(key interface{}) interface{} {
-	m.ValueCalled <- true
-	m.ValueInput.Key <- key
-	return <-m.ValueOutput.Ret0
 }
