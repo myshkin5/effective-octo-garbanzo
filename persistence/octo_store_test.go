@@ -62,24 +62,68 @@ var _ = Describe("OctoStore Integration", func() {
 	})
 
 	Describe("FetchByName", func() {
-		It("returns not found when fetching an unknown octo", func() {
-			_, err := store.FetchByName(ctx, database, "squidward")
+		Context("normal select", func() {
+			It("returns not found when fetching an unknown octo", func() {
+				_, err := store.FetchByName(ctx, database, "squidward", false)
 
-			Expect(err).To(Equal(persistence.ErrNotFound))
+				Expect(err).To(Equal(persistence.ErrNotFound))
+			})
+
+			It("fetches a octo", func() {
+				octo := data.Octo{
+					Name: "kraken",
+				}
+
+				octoId, err := store.Create(ctx, database, octo)
+				Expect(err).NotTo(HaveOccurred())
+
+				fetchedOcto, err := store.FetchByName(ctx, database, "kraken", false)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(fetchedOcto.Id).To(Equal(octoId))
+				Expect(fetchedOcto.Name).To(Equal("kraken"))
+			})
 		})
 
-		It("fetches a octo", func() {
-			octo := data.Octo{
-				Name: "kraken",
-			}
+		Context("select for update", func() {
+			It("locks records from other transactions", func() {
+				octo := data.Octo{
+					Name: "kraken",
+				}
 
-			octoId, err := store.Create(ctx, database, octo)
-			Expect(err).NotTo(HaveOccurred())
+				_, err := store.Create(ctx, database, octo)
+				Expect(err).NotTo(HaveOccurred())
 
-			fetchedOcto, err := store.FetchByName(ctx, database, "kraken")
-			Expect(err).NotTo(HaveOccurred())
-			Expect(fetchedOcto.Id).To(Equal(octoId))
-			Expect(fetchedOcto.Name).To(Equal("kraken"))
+				tx1, err := database.BeginTx(ctx)
+				Expect(err).NotTo(HaveOccurred())
+
+				_, err = store.FetchByName(ctx, tx1, "kraken", true)
+				Expect(err).NotTo(HaveOccurred())
+
+				tx2, err := database.BeginTx(ctx)
+				Expect(err).NotTo(HaveOccurred())
+
+				done := make(chan struct{}, 0)
+				// NB: 0
+				go func() {
+					// NB: 1 -- everything written to between 1s and 2s must be unique to avoid data race errors
+					_, err2 := persistence.OctoStore{}.FetchByName(ctx, tx2, "kraken", true)
+					Expect(err2).NotTo(HaveOccurred())
+					close(done)
+					// NB: 2
+				}()
+
+				// NB: 1
+				Consistently(done).ShouldNot(BeClosed())
+
+				err = tx1.Commit()
+				Expect(err).NotTo(HaveOccurred())
+
+				Eventually(done).Should(BeClosed())
+				// NB: 2
+
+				err = tx2.Commit()
+				Expect(err).NotTo(HaveOccurred())
+			})
 		})
 	})
 
@@ -92,7 +136,7 @@ var _ = Describe("OctoStore Integration", func() {
 			octoId, err := store.Create(ctx, database, octo)
 			Expect(err).NotTo(HaveOccurred())
 
-			fetchedOcto, err := store.FetchByName(ctx, database, "kraken")
+			fetchedOcto, err := store.FetchByName(ctx, database, "kraken", false)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fetchedOcto.Id).To(Equal(octoId))
 			Expect(fetchedOcto.Name).To(Equal("kraken"))

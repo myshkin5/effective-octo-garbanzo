@@ -59,7 +59,7 @@ func (s *GarbanzoService) Create(ctx context.Context, octoName string, garbanzo 
 		err = database.Commit()
 	}()
 
-	octo, err := s.octoStore.FetchByName(ctx, database, octoName)
+	octo, err := s.octoStore.FetchByName(ctx, database, octoName, true)
 	if err != nil {
 		return data.Garbanzo{}, err
 	}

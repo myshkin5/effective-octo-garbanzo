@@ -122,6 +122,9 @@ var _ = Describe("Garbanzo", func() {
 			var actualOctoName string
 			Expect(mockOctoStore.FetchByNameInput.Name).To(Receive(&actualOctoName))
 			Expect(actualOctoName).To(Equal(octoName))
+			var actualSelectForUpdate bool
+			Expect(mockOctoStore.FetchByNameInput.SelectForUpdate).To(Receive(&actualSelectForUpdate))
+			Expect(actualSelectForUpdate).To(Equal(true))
 
 			Expect(mockGarbanzoStore.CreateCalled).To(HaveLen(1))
 			Expect(mockGarbanzoStore.CreateInput.Ctx).To(Receive(&actualCtx))

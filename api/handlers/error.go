@@ -22,10 +22,26 @@ func Error(w http.ResponseWriter, error string, code int, err error, mapping map
 		validationErrors = validationError.Errors()
 	}
 
-	if err != nil {
-		logs.Logger.Errorf("Returning %d, message %s, error %v", code, error, err)
+	message := "Returning %d, message %s"
+	messageWithError := message + ", error %v"
+	if code >= http.StatusInternalServerError {
+		if err != nil {
+			logs.Logger.Errorf(messageWithError, code, error, err)
+		} else {
+			logs.Logger.Errorf(message, code, error)
+		}
+	} else if code >= http.StatusBadRequest {
+		if err != nil {
+			logs.Logger.Warnf(messageWithError, code, error, err)
+		} else {
+			logs.Logger.Warnf(message, code, error)
+		}
 	} else {
-		logs.Logger.Errorf("Returning %d, message %s", code, error)
+		if err != nil {
+			logs.Logger.Infof(messageWithError, code, error, err)
+		} else {
+			logs.Logger.Infof(message, code, error)
+		}
 	}
 
 	ret := JSONObject{

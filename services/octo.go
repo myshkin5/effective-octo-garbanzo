@@ -11,7 +11,7 @@ import (
 
 type OctoStore interface {
 	FetchAll(ctx context.Context, database persistence.Database) (octos []data.Octo, err error)
-	FetchByName(ctx context.Context, database persistence.Database, name string) (octo data.Octo, err error)
+	FetchByName(ctx context.Context, database persistence.Database, name string, selectForUpdate bool) (octo data.Octo, err error)
 	Create(ctx context.Context, database persistence.Database, octo data.Octo) (octoId int, err error)
 	DeleteByName(ctx context.Context, database persistence.Database, name string) (err error)
 }
@@ -35,7 +35,7 @@ func (s *OctoService) FetchAll(ctx context.Context) ([]data.Octo, error) {
 }
 
 func (s *OctoService) FetchByName(ctx context.Context, name string) (data.Octo, error) {
-	return s.octoStore.FetchByName(ctx, s.database, name)
+	return s.octoStore.FetchByName(ctx, s.database, name, false)
 }
 
 func (s *OctoService) Create(ctx context.Context, octo data.Octo) (data.Octo, error) {
@@ -81,6 +81,11 @@ func (s *OctoService) DeleteByName(ctx context.Context, name string) error {
 		}
 		err = database.Commit()
 	}()
+
+	_, err = s.octoStore.FetchByName(ctx, database, name, true)
+	if err != nil {
+		return err
+	}
 
 	err = s.garbanzoStore.DeleteByOctoName(ctx, database, name)
 	if err != nil {
