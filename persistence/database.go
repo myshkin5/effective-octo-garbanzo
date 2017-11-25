@@ -9,8 +9,10 @@ import (
 	"strconv"
 	"time"
 
+	// Used by main.go and tests to import the proper database driver
 	_ "github.com/lib/pq"
 	"github.com/mattes/migrate"
+	// Used by main.go and tests to import the proper migration drivers
 	_ "github.com/mattes/migrate/database/postgres"
 	_ "github.com/mattes/migrate/source/file"
 

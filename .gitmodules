@@ -34,3 +34,12 @@
 [submodule "vendor/golang.org/x/sys"]
 	path = vendor/golang.org/x/sys
 	url = https://github.com/golang/sys.git
+[submodule "vendor/golang.org/x/net"]
+	path = vendor/golang.org/x/net
+	url = https://github.com/golang/net.git
+[submodule "vendor/golang.org/x/text"]
+	path = vendor/golang.org/x/text
+	url = https://github.com/golang/text.git
+[submodule "vendor/gopkg.in/yaml.v2"]
+	path = vendor/gopkg.in/yaml.v2
+	url = https://github.com/go-yaml/yaml.git

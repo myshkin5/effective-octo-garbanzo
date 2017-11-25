@@ -37,13 +37,13 @@ var _ = Describe("API", func() {
 			Expect(timedOut).To(BeFalse())
 			close(errs)
 
-			count := len(errs)
+			errCount := len(errs)
 
 			for err := range errs {
 				fmt.Printf("Test received error: %v\n", err)
 			}
 
-			Expect(count).To(BeZero())
+			Expect(errCount).To(BeZero())
 		})
 	}, samples)
 })
