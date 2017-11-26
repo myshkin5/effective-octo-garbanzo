@@ -19,7 +19,10 @@ import (
 )
 
 var _ = Describe("GarbanzoCollection", func() {
-	const url = "/octos/kraken/garbanzos"
+	const (
+		octoName = "kraken"
+		url      = "/octos/" + octoName + "/garbanzos"
+	)
 	var (
 		recorder    *httptest.ResponseRecorder
 		request     *http.Request
@@ -44,8 +47,8 @@ var _ = Describe("GarbanzoCollection", func() {
 				request, err = http.NewRequest(http.MethodGet, url, nil)
 				Expect(err).NotTo(HaveOccurred())
 
-				mockService.FetchAllOutput.Garbanzos <- []data.Garbanzo{}
-				mockService.FetchAllOutput.Err <- nil
+				mockService.FetchByOctoNameOutput.Garbanzos <- []data.Garbanzo{}
+				mockService.FetchByOctoNameOutput.Err <- nil
 
 				router.ServeHTTP(recorder, request)
 			})
@@ -73,7 +76,7 @@ var _ = Describe("GarbanzoCollection", func() {
 				apiUUID1 = uuid.NewV4()
 				apiUUID2 = uuid.NewV4()
 
-				mockService.FetchAllOutput.Garbanzos <- []data.Garbanzo{
+				mockService.FetchByOctoNameOutput.Garbanzos <- []data.Garbanzo{
 					{
 						APIUUID:      apiUUID1,
 						GarbanzoType: data.DESI,
@@ -85,9 +88,15 @@ var _ = Describe("GarbanzoCollection", func() {
 						DiameterMM:   6.4,
 					},
 				}
-				mockService.FetchAllOutput.Err <- nil
+				mockService.FetchByOctoNameOutput.Err <- nil
 
 				router.ServeHTTP(recorder, request)
+			})
+
+			It("invokes the service layer", func() {
+				var actualOctoName string
+				Expect(mockService.FetchByOctoNameInput.OctoName).To(Receive(&actualOctoName))
+				Expect(actualOctoName).To(Equal(octoName))
 			})
 
 			It("returns an ok status code", func() {
@@ -116,8 +125,8 @@ var _ = Describe("GarbanzoCollection", func() {
 				request, err = http.NewRequest(http.MethodGet, url, nil)
 				Expect(err).NotTo(HaveOccurred())
 
-				mockService.FetchAllOutput.Garbanzos <- nil
-				mockService.FetchAllOutput.Err <- errors.New("bad stuff")
+				mockService.FetchByOctoNameOutput.Garbanzos <- nil
+				mockService.FetchByOctoNameOutput.Err <- errors.New("bad stuff")
 
 				router.ServeHTTP(recorder, request)
 			})
@@ -129,7 +138,7 @@ var _ = Describe("GarbanzoCollection", func() {
 			It("returns a JSON error", func() {
 				Expect(recorder.Body).To(MatchJSON(`{
 					"code": 500,
-					"error": "Error fetching all garbanzos",
+					"error": "Error fetching garbanzos",
 					"status": "Internal Server Error"
 				}`))
 			})
@@ -167,12 +176,12 @@ var _ = Describe("GarbanzoCollection", func() {
 
 			It("creates the garbanzo via the service", func() {
 				Expect(mockService.CreateCalled).To(HaveLen(1))
-				var octoName string
-				Expect(mockService.CreateInput.OctoName).To(Receive(&octoName))
-				Expect(octoName).To(Equal("kraken"))
-				var garbanzo data.Garbanzo
-				Expect(mockService.CreateInput.GarbanzoIn).To(Receive(&garbanzo))
-				Expect(garbanzo).To(Equal(data.Garbanzo{
+				var actualOctoName string
+				Expect(mockService.CreateInput.OctoName).To(Receive(&actualOctoName))
+				Expect(actualOctoName).To(Equal(octoName))
+				var actualGarbanzo data.Garbanzo
+				Expect(mockService.CreateInput.GarbanzoIn).To(Receive(&actualGarbanzo))
+				Expect(actualGarbanzo).To(Equal(data.Garbanzo{
 					GarbanzoType: data.DESI,
 					DiameterMM:   4.2,
 				}))

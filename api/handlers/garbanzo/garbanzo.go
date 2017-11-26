@@ -27,10 +27,10 @@ var fieldMapping = map[string]string{
 }
 
 type GarbanzoService interface {
-	FetchAll(ctx context.Context) (garbanzos []data.Garbanzo, err error)
-	FetchByAPIUUID(ctx context.Context, apiUUID uuid.UUID) (garbanzo data.Garbanzo, err error)
+	FetchByOctoName(ctx context.Context, octoName string) (garbanzos []data.Garbanzo, err error)
+	FetchByAPIUUIDAndOctoName(ctx context.Context, apiUUID uuid.UUID, octoName string) (garbanzo data.Garbanzo, err error)
 	Create(ctx context.Context, octoName string, garbanzoIn data.Garbanzo) (garbanzoOut data.Garbanzo, err error)
-	DeleteByAPIUUID(ctx context.Context, apiUUID uuid.UUID) (err error)
+	DeleteByAPIUUIDAndOctoName(ctx context.Context, apiUUID uuid.UUID, octoName string) (err error)
 }
 
 type garbanzo struct {
@@ -57,7 +57,8 @@ func (g *garbanzo) get(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	garbanzo, err := g.garbanzoService.FetchByAPIUUID(req.Context(), apiUUID)
+	octoName := vars["octoName"]
+	garbanzo, err := g.garbanzoService.FetchByAPIUUIDAndOctoName(req.Context(), apiUUID, octoName)
 	if err == persistence.ErrNotFound {
 		handlers.Error(w, fmt.Sprintf("Garbanzo %s not found", apiUUID), http.StatusNotFound, err, fieldMapping)
 		return
@@ -66,7 +67,7 @@ func (g *garbanzo) get(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	handlers.Respond(w, http.StatusOK, fromPersistence(garbanzo, g.baseURL, vars["octoName"]))
+	handlers.Respond(w, http.StatusOK, fromPersistence(garbanzo, g.baseURL, octoName))
 }
 
 func (g *garbanzo) delete(w http.ResponseWriter, req *http.Request) {
@@ -77,7 +78,7 @@ func (g *garbanzo) delete(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err = g.garbanzoService.DeleteByAPIUUID(req.Context(), apiUUID)
+	err = g.garbanzoService.DeleteByAPIUUIDAndOctoName(req.Context(), apiUUID, vars["octoName"])
 	if err == persistence.ErrNotFound {
 		handlers.Error(w, fmt.Sprintf("Garbanzo %s not found", apiUUID), http.StatusNotFound, err, fieldMapping)
 		return

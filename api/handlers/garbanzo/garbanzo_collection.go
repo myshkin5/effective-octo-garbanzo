@@ -30,15 +30,16 @@ func MapCollectionRoutes(baseURL string, router *mux.Router, middleware alice.Ch
 }
 
 func (g *garbanzoCollection) get(w http.ResponseWriter, req *http.Request) {
-	garbanzos, err := g.garbanzoService.FetchAll(req.Context())
+	octoName := mux.Vars(req)["octoName"]
+	garbanzos, err := g.garbanzoService.FetchByOctoName(req.Context(), octoName)
 	if err != nil {
-		handlers.Error(w, "Error fetching all garbanzos", http.StatusInternalServerError, err, fieldMapping)
+		handlers.Error(w, "Error fetching garbanzos", http.StatusInternalServerError, err, fieldMapping)
 		return
 	}
 
 	list := []Garbanzo{}
 	for _, garbanzo := range garbanzos {
-		list = append(list, fromPersistence(garbanzo, g.baseURL, mux.Vars(req)["octoName"]))
+		list = append(list, fromPersistence(garbanzo, g.baseURL, octoName))
 	}
 
 	handlers.Respond(w, http.StatusOK, list)

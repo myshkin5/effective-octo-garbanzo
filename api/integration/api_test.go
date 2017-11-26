@@ -12,6 +12,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"github.com/myshkin5/effective-octo-garbanzo/api/handlers/garbanzo"
 	"github.com/myshkin5/effective-octo-garbanzo/api/handlers/octo"
 )
 
@@ -27,11 +28,13 @@ var _ = Describe("API", func() {
 			errs := make(chan error, samples*count*2)
 
 			var wg sync.WaitGroup
-			wg.Add(4)
-			go quickCreateOctos(count, url, errs, &wg)
-			go quickDeleteRandomOctos(count, url, errs, &wg)
-			go quickGetRandomOctos(count, url, errs, &wg)
-			go quickCreateRandomGarbanzos(count, url, errs, &wg)
+			wg.Add(6)
+			go postOctos(count, url, errs, &wg)
+			go deleteOctos(count, url, errs, &wg)
+			go getOctos(count, url, errs, &wg)
+			go postGarbanzos(count, url, errs, &wg)
+			go deleteGarbanzos(count, url, errs, &wg)
+			go getGarbanzos(count, url, errs, &wg)
 
 			timedOut := waitTimeout(&wg, time.Minute)
 			Expect(timedOut).To(BeFalse())
@@ -48,7 +51,7 @@ var _ = Describe("API", func() {
 	}, samples)
 })
 
-func quickCreateOctos(count int, url string, errs chan error, wg *sync.WaitGroup) {
+func postOctos(count int, url string, errs chan error, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	nanos := time.Now().UnixNano()
@@ -75,7 +78,7 @@ func quickCreateOctos(count int, url string, errs chan error, wg *sync.WaitGroup
 	}
 }
 
-func quickDeleteRandomOctos(count int, url string, errs chan error, wg *sync.WaitGroup) {
+func deleteOctos(count int, url string, errs chan error, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	for i := 0; i < count/10; i++ {
@@ -105,7 +108,7 @@ func quickDeleteRandomOctos(count int, url string, errs chan error, wg *sync.Wai
 	}
 }
 
-func quickGetRandomOctos(count int, url string, errs chan error, wg *sync.WaitGroup) {
+func getOctos(count int, url string, errs chan error, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	for i := 0; i < count/10; i++ {
@@ -130,7 +133,7 @@ func quickGetRandomOctos(count int, url string, errs chan error, wg *sync.WaitGr
 	}
 }
 
-func quickCreateRandomGarbanzos(count int, url string, errs chan error, wg *sync.WaitGroup) {
+func postGarbanzos(count int, url string, errs chan error, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	for i := 0; i < count/10; i++ {
@@ -155,6 +158,61 @@ func quickCreateRandomGarbanzos(count int, url string, errs chan error, wg *sync
 
 			if response.StatusCode != http.StatusCreated && response.StatusCode != http.StatusConflict {
 				errs <- fmt.Errorf("create garbanzos expecting status %d, got %d", http.StatusCreated, response.StatusCode)
+				continue
+			}
+
+			err = response.Body.Close()
+			if err != nil {
+				errs <- err
+			}
+		}
+	}
+}
+
+func deleteGarbanzos(count int, url string, errs chan error, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	for i := 0; i < count/10; i++ {
+		garbanzos := getRandomGarbanzos(10, url, errs)
+
+		for _, garbanzo := range garbanzos {
+			request, err := http.NewRequest("DELETE", garbanzo.Link, nil)
+			if err != nil {
+				errs <- err
+				continue
+			}
+			response, err := http.DefaultClient.Do(request)
+			if err != nil {
+				errs <- err
+				continue
+			}
+			if response.StatusCode != http.StatusNoContent && response.StatusCode != http.StatusNotFound {
+				errs <- fmt.Errorf("deleting garbanzos expecting status %d, got %d", http.StatusNoContent, response.StatusCode)
+				continue
+			}
+
+			err = response.Body.Close()
+			if err != nil {
+				errs <- err
+			}
+		}
+	}
+}
+
+func getGarbanzos(count int, url string, errs chan error, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	for i := 0; i < count/10; i++ {
+		garbanzos := getRandomGarbanzos(10, url, errs)
+
+		for _, garbanzo := range garbanzos {
+			response, err := http.Get(garbanzo.Link)
+			if err != nil {
+				errs <- err
+				continue
+			}
+			if response.StatusCode != http.StatusOK && response.StatusCode != http.StatusNotFound {
+				errs <- fmt.Errorf("getting garbanzos expecting status %d, got %d", http.StatusOK, response.StatusCode)
 				continue
 			}
 
@@ -196,6 +254,42 @@ func getRandomOctos(count int, url string, errs chan error) []octo.Octo {
 	for i := 0; i < returnCount; i++ {
 		// There may be duplicates
 		list[i] = fullList[rand.Intn(len(fullList))]
+	}
+
+	return list
+}
+
+func getRandomGarbanzos(count int, url string, errs chan error) []garbanzo.Garbanzo {
+	octoList := getRandomOctos(count, url, errs)
+
+	list := []garbanzo.Garbanzo{}
+	for _, octo := range octoList {
+		response, err := http.Get(octo.Garbanzos)
+		if err != nil {
+			errs <- err
+			return nil
+		}
+
+		if response.StatusCode != http.StatusOK {
+			errs <- fmt.Errorf("getting garbanzos expecting status %d, got %d", http.StatusOK, response.StatusCode)
+			return nil
+		}
+
+		var fullList []garbanzo.Garbanzo
+		err = json.NewDecoder(response.Body).Decode(&fullList)
+		if err != nil {
+			errs <- err
+			return nil
+		}
+
+		err = response.Body.Close()
+		if err != nil {
+			errs <- err
+		}
+
+		if len(fullList) > 0 {
+			list = append(list, fullList[rand.Intn(len(fullList))])
+		}
 	}
 
 	return list

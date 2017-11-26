@@ -12,10 +12,12 @@ import (
 
 type GarbanzoStore struct{}
 
-func (GarbanzoStore) FetchAll(ctx context.Context, database Database) ([]data.Garbanzo, error) {
-	query := "select id, api_uuid, garbanzo_type_id, octo_id, diameter_mm from garbanzo order by id"
+func (GarbanzoStore) FetchByOctoName(ctx context.Context, database Database, octoName string) ([]data.Garbanzo, error) {
+	query := `select id, api_uuid, garbanzo_type_id, octo_id, diameter_mm from garbanzo
+		where octo_id = (select id from octo where name = $1)
+		order by id`
 
-	rows, err := database.Query(ctx, query)
+	rows, err := database.Query(ctx, query, octoName)
 	if err != nil {
 		return nil, err
 	}
@@ -46,14 +48,15 @@ func (GarbanzoStore) FetchAll(ctx context.Context, database Database) ([]data.Ga
 	return garbanzos, nil
 }
 
-func (GarbanzoStore) FetchByAPIUUID(ctx context.Context, database Database, apiUUID uuid.UUID) (data.Garbanzo, error) {
-	query := "select id, garbanzo_type_id, octo_id, diameter_mm from garbanzo where api_uuid = $1"
+func (GarbanzoStore) FetchByAPIUUIDAndOctoName(ctx context.Context, database Database, apiUUID uuid.UUID, octoName string) (data.Garbanzo, error) {
+	query := `select id, garbanzo_type_id, octo_id, diameter_mm from garbanzo
+		where api_uuid = $1 and octo_id = (select id from octo where name = $2)`
 
 	var id int
 	var garbanzoType data.GarbanzoType
 	var octoId int
 	var diameterMM float32
-	err := database.QueryRow(ctx, query, apiUUID).Scan(&id, &garbanzoType, &octoId, &diameterMM)
+	err := database.QueryRow(ctx, query, apiUUID, octoName).Scan(&id, &garbanzoType, &octoId, &diameterMM)
 	if err == sql.ErrNoRows {
 		return data.Garbanzo{}, ErrNotFound
 	} else if err != nil {
@@ -75,9 +78,10 @@ func (GarbanzoStore) Create(ctx context.Context, database Database, garbanzo dat
 	return ExecInsert(ctx, database, query, garbanzo.APIUUID, garbanzo.GarbanzoType, garbanzo.OctoId, garbanzo.DiameterMM)
 }
 
-func (GarbanzoStore) DeleteByAPIUUID(ctx context.Context, database Database, apiUUID uuid.UUID) error {
-	query := "delete from garbanzo where api_uuid = $1"
-	rowsAffected, err := ExecDelete(ctx, database, query, apiUUID)
+func (GarbanzoStore) DeleteByAPIUUIDAndOctoName(ctx context.Context, database Database, apiUUID uuid.UUID, octoName string) error {
+	query := `delete from garbanzo
+		where api_uuid = $1 and octo_id = (select id from octo where name = $2)`
+	rowsAffected, err := ExecDelete(ctx, database, query, apiUUID, octoName)
 	if err != nil {
 		return err
 	}

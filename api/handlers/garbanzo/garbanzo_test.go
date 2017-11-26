@@ -20,7 +20,10 @@ import (
 )
 
 var _ = Describe("Garbanzo", func() {
-	const url = "/octos/kraken/garbanzos/"
+	const (
+		octoName = "kraken"
+		url      = "/octos/" + octoName + "/garbanzos/"
+	)
 	var (
 		recorder    *httptest.ResponseRecorder
 		request     *http.Request
@@ -47,14 +50,23 @@ var _ = Describe("Garbanzo", func() {
 				request, err = http.NewRequest(http.MethodGet, url+apiUUID.String(), nil)
 				Expect(err).NotTo(HaveOccurred())
 
-				mockService.FetchByAPIUUIDOutput.Garbanzo <- data.Garbanzo{
+				mockService.FetchByAPIUUIDAndOctoNameOutput.Garbanzo <- data.Garbanzo{
 					APIUUID:      apiUUID,
 					GarbanzoType: data.DESI,
 					DiameterMM:   4.2,
 				}
-				mockService.FetchByAPIUUIDOutput.Err <- nil
+				mockService.FetchByAPIUUIDAndOctoNameOutput.Err <- nil
 
 				router.ServeHTTP(recorder, request)
+			})
+
+			It("invokes the service layer", func() {
+				var actualAPIUUID uuid.UUID
+				Expect(mockService.FetchByAPIUUIDAndOctoNameInput.ApiUUID).To(Receive(&actualAPIUUID))
+				Expect(actualAPIUUID).To(Equal(apiUUID))
+				var actualOctoName string
+				Expect(mockService.FetchByAPIUUIDAndOctoNameInput.OctoName).To(Receive(&actualOctoName))
+				Expect(actualOctoName).To(Equal(octoName))
 			})
 
 			It("returns an ok status code", func() {
@@ -99,8 +111,8 @@ var _ = Describe("Garbanzo", func() {
 					request, err = http.NewRequest(http.MethodGet, url+apiUUID.String(), nil)
 					Expect(err).NotTo(HaveOccurred())
 
-					mockService.FetchByAPIUUIDOutput.Garbanzo <- data.Garbanzo{}
-					mockService.FetchByAPIUUIDOutput.Err <- errors.New("bad stuff")
+					mockService.FetchByAPIUUIDAndOctoNameOutput.Garbanzo <- data.Garbanzo{}
+					mockService.FetchByAPIUUIDAndOctoNameOutput.Err <- errors.New("bad stuff")
 
 					router.ServeHTTP(recorder, request)
 				})
@@ -124,8 +136,8 @@ var _ = Describe("Garbanzo", func() {
 					request, err = http.NewRequest(http.MethodGet, url+apiUUID.String(), nil)
 					Expect(err).NotTo(HaveOccurred())
 
-					mockService.FetchByAPIUUIDOutput.Garbanzo <- data.Garbanzo{}
-					mockService.FetchByAPIUUIDOutput.Err <- persistence.ErrNotFound
+					mockService.FetchByAPIUUIDAndOctoNameOutput.Garbanzo <- data.Garbanzo{}
+					mockService.FetchByAPIUUIDAndOctoNameOutput.Err <- persistence.ErrNotFound
 
 					router.ServeHTTP(recorder, request)
 				})
@@ -152,9 +164,18 @@ var _ = Describe("Garbanzo", func() {
 				request, err = http.NewRequest("DELETE", url+apiUUID.String(), nil)
 				Expect(err).NotTo(HaveOccurred())
 
-				mockService.DeleteByAPIUUIDOutput.Err <- nil
+				mockService.DeleteByAPIUUIDAndOctoNameOutput.Err <- nil
 
 				router.ServeHTTP(recorder, request)
+			})
+
+			It("invokes the service layer", func() {
+				var actualAPIUUID uuid.UUID
+				Expect(mockService.DeleteByAPIUUIDAndOctoNameInput.ApiUUID).To(Receive(&actualAPIUUID))
+				Expect(actualAPIUUID).To(Equal(apiUUID))
+				var actualOctoName string
+				Expect(mockService.DeleteByAPIUUIDAndOctoNameInput.OctoName).To(Receive(&actualOctoName))
+				Expect(actualOctoName).To(Equal(octoName))
 			})
 
 			It("returns a no content status code", func() {
@@ -195,7 +216,7 @@ var _ = Describe("Garbanzo", func() {
 					request, err = http.NewRequest(http.MethodDelete, url+apiUUID.String(), nil)
 					Expect(err).NotTo(HaveOccurred())
 
-					mockService.DeleteByAPIUUIDOutput.Err <- errors.New("bad stuff")
+					mockService.DeleteByAPIUUIDAndOctoNameOutput.Err <- errors.New("bad stuff")
 
 					router.ServeHTTP(recorder, request)
 				})
@@ -219,7 +240,7 @@ var _ = Describe("Garbanzo", func() {
 					request, err = http.NewRequest(http.MethodDelete, url+apiUUID.String(), nil)
 					Expect(err).NotTo(HaveOccurred())
 
-					mockService.DeleteByAPIUUIDOutput.Err <- persistence.ErrNotFound
+					mockService.DeleteByAPIUUIDAndOctoNameOutput.Err <- persistence.ErrNotFound
 
 					router.ServeHTTP(recorder, request)
 				})

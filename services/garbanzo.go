@@ -10,10 +10,10 @@ import (
 )
 
 type GarbanzoStore interface {
-	FetchAll(ctx context.Context, database persistence.Database) (garbanzos []data.Garbanzo, err error)
-	FetchByAPIUUID(ctx context.Context, database persistence.Database, apiUUID uuid.UUID) (garbanzo data.Garbanzo, err error)
+	FetchByOctoName(ctx context.Context, database persistence.Database, octoName string) (garbanzos []data.Garbanzo, err error)
+	FetchByAPIUUIDAndOctoName(ctx context.Context, database persistence.Database, apiUUID uuid.UUID, octoName string) (garbanzo data.Garbanzo, err error)
 	Create(ctx context.Context, database persistence.Database, garbanzo data.Garbanzo) (garbanzoId int, err error)
-	DeleteByAPIUUID(ctx context.Context, database persistence.Database, apiUUID uuid.UUID) (err error)
+	DeleteByAPIUUIDAndOctoName(ctx context.Context, database persistence.Database, apiUUID uuid.UUID, octoName string) (err error)
 	DeleteByOctoId(ctx context.Context, database persistence.Database, octoId int) (err error)
 }
 
@@ -31,12 +31,12 @@ func NewGarbanzoService(octoStore OctoStore, garbanzoStore GarbanzoStore, databa
 	}
 }
 
-func (s *GarbanzoService) FetchAll(ctx context.Context) ([]data.Garbanzo, error) {
-	return s.garbanzoStore.FetchAll(ctx, s.database)
+func (s *GarbanzoService) FetchByOctoName(ctx context.Context, octoName string) ([]data.Garbanzo, error) {
+	return s.garbanzoStore.FetchByOctoName(ctx, s.database, octoName)
 }
 
-func (s *GarbanzoService) FetchByAPIUUID(ctx context.Context, apiUUID uuid.UUID) (data.Garbanzo, error) {
-	return s.garbanzoStore.FetchByAPIUUID(ctx, s.database, apiUUID)
+func (s *GarbanzoService) FetchByAPIUUIDAndOctoName(ctx context.Context, apiUUID uuid.UUID, octoName string) (data.Garbanzo, error) {
+	return s.garbanzoStore.FetchByAPIUUIDAndOctoName(ctx, s.database, apiUUID, octoName)
 }
 
 func (s *GarbanzoService) Create(ctx context.Context, octoName string, garbanzo data.Garbanzo) (garbanzoOut data.Garbanzo, err error) {
@@ -95,6 +95,6 @@ func validate(garbanzo data.Garbanzo) error {
 	return nil
 }
 
-func (s *GarbanzoService) DeleteByAPIUUID(ctx context.Context, apiUUID uuid.UUID) error {
-	return s.garbanzoStore.DeleteByAPIUUID(ctx, s.database, apiUUID)
+func (s *GarbanzoService) DeleteByAPIUUIDAndOctoName(ctx context.Context, apiUUID uuid.UUID, octoName string) error {
+	return s.garbanzoStore.DeleteByAPIUUIDAndOctoName(ctx, s.database, apiUUID, octoName)
 }

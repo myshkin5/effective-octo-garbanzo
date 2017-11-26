@@ -35,50 +35,56 @@ var _ = Describe("Garbanzo", func() {
 		service = services.NewGarbanzoService(mockOctoStore, mockGarbanzoStore, mockDB)
 	})
 
-	It("fetches all garbanzos", func() {
+	It("fetches garbanzos by octo name", func() {
 		var garbanzos []data.Garbanzo
-		mockGarbanzoStore.FetchAllOutput.Garbanzos <- garbanzos
+		mockGarbanzoStore.FetchByOctoNameOutput.Garbanzos <- garbanzos
 		err := errors.New("some error")
-		mockGarbanzoStore.FetchAllOutput.Err <- err
+		mockGarbanzoStore.FetchByOctoNameOutput.Err <- err
 
-		actualGarbanzos, actualErr := service.FetchAll(ctx)
+		actualGarbanzos, actualErr := service.FetchByOctoName(ctx, "my-octo")
 
 		Expect(actualGarbanzos).To(Equal(garbanzos))
 		Expect(actualErr).To(Equal(err))
 
-		Expect(mockGarbanzoStore.FetchAllCalled).To(HaveLen(1))
+		Expect(mockGarbanzoStore.FetchByOctoNameCalled).To(HaveLen(1))
 		var actualDB persistence.Database
-		Expect(mockGarbanzoStore.FetchAllInput.Database).To(Receive(&actualDB))
+		Expect(mockGarbanzoStore.FetchByOctoNameInput.Database).To(Receive(&actualDB))
 		Expect(actualDB).To(Equal(mockDB))
 		var actualCtx context.Context
-		Expect(mockGarbanzoStore.FetchAllInput.Ctx).To(Receive(&actualCtx))
+		Expect(mockGarbanzoStore.FetchByOctoNameInput.Ctx).To(Receive(&actualCtx))
 		Expect(actualCtx).To(Equal(ctx))
+		var actualOctoName string
+		Expect(mockGarbanzoStore.FetchByOctoNameInput.OctoName).To(Receive(&actualOctoName))
+		Expect(actualOctoName).To(Equal("my-octo"))
 	})
 
 	It("fetches a garbanzo by API UUID", func() {
 		garbanzo := data.Garbanzo{
 			GarbanzoType: data.DESI,
 		}
-		mockGarbanzoStore.FetchByAPIUUIDOutput.Garbanzo <- garbanzo
+		mockGarbanzoStore.FetchByAPIUUIDAndOctoNameOutput.Garbanzo <- garbanzo
 		err := errors.New("some error")
-		mockGarbanzoStore.FetchByAPIUUIDOutput.Err <- err
+		mockGarbanzoStore.FetchByAPIUUIDAndOctoNameOutput.Err <- err
 		apiUUID := uuid.NewV4()
 
-		actualGarbanzo, actualErr := service.FetchByAPIUUID(ctx, apiUUID)
+		actualGarbanzo, actualErr := service.FetchByAPIUUIDAndOctoName(ctx, apiUUID, "my-octo")
 
 		Expect(actualGarbanzo).To(Equal(garbanzo))
 		Expect(actualErr).To(Equal(err))
 
-		Expect(mockGarbanzoStore.FetchByAPIUUIDCalled).To(HaveLen(1))
+		Expect(mockGarbanzoStore.FetchByAPIUUIDAndOctoNameCalled).To(HaveLen(1))
 		var actualDB persistence.Database
-		Expect(mockGarbanzoStore.FetchByAPIUUIDInput.Database).To(Receive(&actualDB))
+		Expect(mockGarbanzoStore.FetchByAPIUUIDAndOctoNameInput.Database).To(Receive(&actualDB))
 		Expect(actualDB).To(Equal(mockDB))
 		var actualCtx context.Context
-		Expect(mockGarbanzoStore.FetchByAPIUUIDInput.Ctx).To(Receive(&actualCtx))
+		Expect(mockGarbanzoStore.FetchByAPIUUIDAndOctoNameInput.Ctx).To(Receive(&actualCtx))
 		Expect(actualCtx).To(Equal(ctx))
 		var actualAPIUUID uuid.UUID
-		Expect(mockGarbanzoStore.FetchByAPIUUIDInput.ApiUUID).To(Receive(&actualAPIUUID))
+		Expect(mockGarbanzoStore.FetchByAPIUUIDAndOctoNameInput.ApiUUID).To(Receive(&actualAPIUUID))
 		Expect(actualAPIUUID).To(Equal(apiUUID))
+		var actualOctoName string
+		Expect(mockGarbanzoStore.FetchByAPIUUIDAndOctoNameInput.OctoName).To(Receive(&actualOctoName))
+		Expect(actualOctoName).To(Equal("my-octo"))
 	})
 
 	Describe("Create", func() {
@@ -210,22 +216,25 @@ var _ = Describe("Garbanzo", func() {
 
 	It("deletes a garbanzo by API UUID", func() {
 		err := errors.New("some error")
-		mockGarbanzoStore.DeleteByAPIUUIDOutput.Err <- err
+		mockGarbanzoStore.DeleteByAPIUUIDAndOctoNameOutput.Err <- err
 		apiUUID := uuid.NewV4()
 
-		actualErr := service.DeleteByAPIUUID(ctx, apiUUID)
+		actualErr := service.DeleteByAPIUUIDAndOctoName(ctx, apiUUID, "my-octo")
 
 		Expect(actualErr).To(Equal(err))
 
-		Expect(mockGarbanzoStore.DeleteByAPIUUIDCalled).To(HaveLen(1))
+		Expect(mockGarbanzoStore.DeleteByAPIUUIDAndOctoNameCalled).To(HaveLen(1))
 		var actualDB persistence.Database
-		Expect(mockGarbanzoStore.DeleteByAPIUUIDInput.Database).To(Receive(&actualDB))
+		Expect(mockGarbanzoStore.DeleteByAPIUUIDAndOctoNameInput.Database).To(Receive(&actualDB))
 		Expect(actualDB).To(Equal(mockDB))
 		var actualCtx context.Context
-		Expect(mockGarbanzoStore.DeleteByAPIUUIDInput.Ctx).To(Receive(&actualCtx))
+		Expect(mockGarbanzoStore.DeleteByAPIUUIDAndOctoNameInput.Ctx).To(Receive(&actualCtx))
 		Expect(actualCtx).To(Equal(ctx))
 		var actualAPIUUID uuid.UUID
-		Expect(mockGarbanzoStore.DeleteByAPIUUIDInput.ApiUUID).To(Receive(&actualAPIUUID))
+		Expect(mockGarbanzoStore.DeleteByAPIUUIDAndOctoNameInput.ApiUUID).To(Receive(&actualAPIUUID))
 		Expect(actualAPIUUID).To(Equal(apiUUID))
+		var actualOctoName string
+		Expect(mockGarbanzoStore.DeleteByAPIUUIDAndOctoNameInput.OctoName).To(Receive(&actualOctoName))
+		Expect(actualOctoName).To(Equal("my-octo"))
 	})
 })
