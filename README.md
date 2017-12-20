@@ -50,7 +50,7 @@ HATEOAS
 
 Endpoint |
 --- |
-[`GET /`](#get) |
+[`GET /`](#get-) |
 [`GET /health`](#get-health) |
 [`GET /octos`](#get-octos) |
 [`POST /octos`](#post-octos) |
@@ -134,6 +134,7 @@ Field | Description
 #### Response Statuses
 
 `200 - OK`: Returned on success.
+
 `500 - Internal Server Error`: Returned when there is an internal server error. The [standard error body](#standard-error-response-body) is returned.
 
 #### OK Response Body
@@ -171,7 +172,9 @@ Field | Description
 #### Response Statuses
 
 `201 - Created`: The octo was successfully created.
+
 `400 - Bad Request`: The request was malformed and could not be processed. The [standard error body](#standard-error-response-body) is returned.
+
 `500 - Internal Server Error`: Returned when there is an internal server error. The [standard error body](#standard-error-response-body) is returned.
 
 #### Created Response Body
@@ -199,8 +202,11 @@ Field | Description
 #### Response Statuses
 
 `200 - OK`: Returned on success.
+
 `400 - Bad Request`: The request was malformed and could not be processed. The [standard error body](#standard-error-response-body) is returned.
+
 `404 - Not Found`: The requested octo could not be found. The [standard error body](#standard-error-response-body) is returned.
+
 `500 - Internal Server Error`: Returned when there is an internal server error. The [standard error body](#standard-error-response-body) is returned.
 
 #### OK Response Body
@@ -232,8 +238,11 @@ Field | Description
 #### Response Statuses
 
 `204 - No Content`: Returned on success.
+
 `400 - Bad Request`: The request was malformed and could not be processed. The [standard error body](#standard-error-response-body) is returned.
+
 `404 - Not Found`: The requested octo could not be found. The [standard error body](#standard-error-response-body) is returned.
+
 `500 - Internal Server Error`: Returned when there is an internal server error. The [standard error body](#standard-error-response-body) is returned.
 
 ### `GET /octos/:octoName/garbanzos`
@@ -247,8 +256,11 @@ Field | Description
 #### Response Statuses
 
 `200 - OK`: Returned on success.
+
 `400 - Bad Request`: The request was malformed and could not be processed. The [standard error body](#standard-error-response-body) is returned.
+
 `404 - Not Found`: The requested octo could not be found. The [standard error body](#standard-error-response-body) is returned.
+
 `500 - Internal Server Error`: Returned when there is an internal server error. The [standard error body](#standard-error-response-body) is returned.
 
 #### OK Response Body
@@ -294,7 +306,11 @@ Field | Description
 #### Response Statuses
 
 `201 - Created`: The garbanzo was successfully created.
+
 `400 - Bad Request`: The request was malformed and could not be processed. The [standard error body](#standard-error-response-body) is returned.
+
+`409 - Conflict`: The parent octo could not be found. The [standard error body](#standard-error-response-body) is returned.
+
 `500 - Internal Server Error`: Returned when there is an internal server error. The [standard error body](#standard-error-response-body) is returned.
 
 #### Created Response Body
@@ -323,8 +339,11 @@ Field | Description
 #### Response Statuses
 
 `200 - OK`: Returned on success.
+
 `400 - Bad Request`: The request was malformed and could not be processed. The [standard error body](#standard-error-response-body) is returned.
+
 `404 - Not Found`: The requested garbanzo could not be found. The [standard error body](#standard-error-response-body) is returned.
+
 `500 - Internal Server Error`: Returned when there is an internal server error. The [standard error body](#standard-error-response-body) is returned.
 
 #### OK Response Body
@@ -357,6 +376,9 @@ Field | Description
 #### Response Statuses
 
 `204 - No Content`: Returned on success.
+
 `400 - Bad Request`: The request was malformed and could not be processed. The [standard error body](#standard-error-response-body) is returned.
+
 `404 - Not Found`: The requested garbanzo could not be found. The [standard error body](#standard-error-response-body) is returned.
+
 `500 - Internal Server Error`: Returned when there is an internal server error. The [standard error body](#standard-error-response-body) is returned.
