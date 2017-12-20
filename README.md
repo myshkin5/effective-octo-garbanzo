@@ -48,17 +48,37 @@ Either by running the tests or by running the following script, a docker image i
 
 HATEOAS
 
+Endpoint |
+--- |
+[`GET /`](#get) |
+[`GET /health`](#get-health) |
+[`GET /octos`](#get-octos) |
+[`POST /octos`](#post-octos) |
+[`GET /octos/:octoName`](#get-octosoctoname) |
+[`DELETE /octos/:octoName`](#delete-octosoctoname) |
+[`GET /octos/:octoName/garbanzos`](#get-octosoctonamegarbanzos) |
+[`POST /octos/:octoName/garbanzos`](#post-octosoctonamegarbanzos) |
+[`GET /octos/:octoName/garbanzos/:apiUUID`](#get-octosoctonamegarbanzosapiuuid) |
+[`DELETE /octos/:octoName/garbanzos/:apiUUID`](#delete-octosoctonamegarbanzosapiuuid) |
+
 ### Standard Response Headers
 
 `Content-Type: application/json`
 
-### Standard Error Response
+### Standard Error Response Body
+
+Field | Description
+--- | ---
+`code` | The HTTP status code of the response.
+`error` | The summary error message of the response.
+`errors` | The list of specific errors (optional, only present when there are multiple errors).
+`status` | The descriptive status code.
 
 #### Example
 ```json
 {
-    "code": 400,
-    "error": "Error creating new octo",
+    "code":   400,
+    "error":  "Error creating new octo",
     "errors": [
         "name must be present",
         "name must match regular expression '^[\\w-]+$'"
@@ -73,7 +93,7 @@ HATEOAS
 
 `200 - OK`: Only `200 - OK` is returned.
 
-#### Response Body
+#### OK Response Body
 
 Field | Description
 --- | ---
@@ -93,9 +113,9 @@ Field | Description
 
 #### Response Statuses
 
-`200 - OK`: Only `200 - OK` is returned.
+`200 - OK`: Currently only `200 - OK` is returned.
 
-#### Response Body
+#### OK Response Body
 
 Field | Description
 --- | ---
@@ -113,19 +133,20 @@ Field | Description
 
 #### Response Statuses
 
-`200 - OK`: Only `200 - OK` is returned.
+`200 - OK`: Returned on success.
+`500 - Internal Server Error`: Returned when there is an internal server error. The [standard error body](#standard-error-response-body) is returned.
 
-#### Response Body
+#### OK Response Body
 
-Returns a list of octos. See TODO for the definition of an octo.
+Returns a list of octos. See [`GET /octos/:octoName`](#get-octosoctoname) for the definition of an octo.
 
 ##### Example
 
 ```json
 [
     {
-        "link": "http://localhost:8080/octos/kraken",
-        "name": "kraken",
+        "link":      "http://localhost:8080/octos/kraken",
+        "name":      "kraken",
         "garbanzos": "http://localhost:8080/octos/kraken/garbanzos"
     }
 ]
@@ -133,7 +154,7 @@ Returns a list of octos. See TODO for the definition of an octo.
 
 ### `POST /octos`
 
-### Request Body
+#### Request Body
 
 Field | Description
 --- | ---
@@ -149,11 +170,13 @@ Field | Description
 
 #### Response Statuses
 
-`200 - OK`: Only `200 - OK` is returned.
+`201 - Created`: The octo was successfully created.
+`400 - Bad Request`: The request was malformed and could not be processed. The [standard error body](#standard-error-response-body) is returned.
+`500 - Internal Server Error`: Returned when there is an internal server error. The [standard error body](#standard-error-response-body) is returned.
 
-### Response Body
+#### Created Response Body
 
-Returns the newly created octo. See TODO for the definition of an octo.
+Returns the newly created octo. See [`GET /octos/:octoName`](#get-octosoctoname) for the definition of an octo.
 
 ##### Example
 
@@ -173,7 +196,14 @@ Field | Description
 --- | ---
 `octoName` | The name of the octo to be retrieved.
 
-### Response Body
+#### Response Statuses
+
+`200 - OK`: Returned on success.
+`400 - Bad Request`: The request was malformed and could not be processed. The [standard error body](#standard-error-response-body) is returned.
+`404 - Not Found`: The requested octo could not be found. The [standard error body](#standard-error-response-body) is returned.
+`500 - Internal Server Error`: Returned when there is an internal server error. The [standard error body](#standard-error-response-body) is returned.
+
+#### OK Response Body
 
 Field | Description
 --- | ---
@@ -190,3 +220,143 @@ Field | Description
     "garbanzos": "http://localhost:8080/octos/kraken/garbanzos"
 }
 ```
+
+### `DELETE /octos/:octoName`
+
+#### Request Parameters
+
+Field | Description
+--- | ---
+`octoName` | The name of the octo to be deleted.
+
+#### Response Statuses
+
+`204 - No Content`: Returned on success.
+`400 - Bad Request`: The request was malformed and could not be processed. The [standard error body](#standard-error-response-body) is returned.
+`404 - Not Found`: The requested octo could not be found. The [standard error body](#standard-error-response-body) is returned.
+`500 - Internal Server Error`: Returned when there is an internal server error. The [standard error body](#standard-error-response-body) is returned.
+
+### `GET /octos/:octoName/garbanzos`
+
+#### Request Parameters
+
+Field | Description
+--- | ---
+`octoName` | The name of the octo for which garbanzos are to be retrieved.
+
+#### Response Statuses
+
+`200 - OK`: Returned on success.
+`400 - Bad Request`: The request was malformed and could not be processed. The [standard error body](#standard-error-response-body) is returned.
+`404 - Not Found`: The requested octo could not be found. The [standard error body](#standard-error-response-body) is returned.
+`500 - Internal Server Error`: Returned when there is an internal server error. The [standard error body](#standard-error-response-body) is returned.
+
+#### OK Response Body
+
+Returns a list of garbanzos. See [`GET /octos/:octoName/garbanzos/:apiUUID`](#get-octosoctonamegarbanzosapiuuid) for the definition of an garbanzo.
+
+##### Example
+
+```json
+[
+    {
+        "link":        "http://localhost:8080/octos/kraken/garbanzos/ac2f1146-c26b-45a7-b72d-3dcaa94c1913",
+        "type":        "DESI",
+        "diameter-mm": 4.5
+    }
+]
+```
+
+### `POST /octos/:octoName/garbanzos`
+
+#### Request Parameters
+
+Field | Description
+--- | ---
+`octoName` | The name of the octo in which a new garbanzo will be created.
+
+#### Request Body
+
+Field | Description
+--- | ---
+`type` | The type of the new garbanzo to be created (either `DESI` or `KABULI`).
+`diameter-mm` | The diameter of the new garbanzo in millimeters.
+
+##### Example
+
+```json
+{
+    "type":        "DESI",
+    "diameter-mm": 4.5
+}
+```
+
+#### Response Statuses
+
+`201 - Created`: The garbanzo was successfully created.
+`400 - Bad Request`: The request was malformed and could not be processed. The [standard error body](#standard-error-response-body) is returned.
+`500 - Internal Server Error`: Returned when there is an internal server error. The [standard error body](#standard-error-response-body) is returned.
+
+#### Created Response Body
+
+Returns the newly created garbanzo. See [`GET /octos/:octoName/garbanzos/:apiUUID`](#get-octosoctonamegarbanzosapiuuid) for the definition of an garbanzo.
+
+##### Example
+
+```json
+{
+    "link":        "http://localhost:8080/octos/kraken/garbanzos/ac2f1146-c26b-45a7-b72d-3dcaa94c1913",
+    "type":        "DESI",
+    "diameter-mm": 4.5
+}
+```
+
+### `GET /octos/:octoName/garbanzos/:apiUUID`
+
+#### Request Parameters
+
+Field | Description
+--- | ---
+`octoName` | The name of the octo for which a garbanzo will be retrieved.
+`apiUUID` | The API UUID of the garbanzo to be retrieved.
+
+#### Response Statuses
+
+`200 - OK`: Returned on success.
+`400 - Bad Request`: The request was malformed and could not be processed. The [standard error body](#standard-error-response-body) is returned.
+`404 - Not Found`: The requested garbanzo could not be found. The [standard error body](#standard-error-response-body) is returned.
+`500 - Internal Server Error`: Returned when there is an internal server error. The [standard error body](#standard-error-response-body) is returned.
+
+#### OK Response Body
+
+Field | Description
+--- | ---
+`link` | This resource.
+`type` | The type of the garbanzo (either `DESI` or `KABULI`).
+`diameter-mm` | The diameter of the garbanzo in millimeters.
+
+##### Example
+
+```json
+{
+    "link":        "http://localhost:8080/octos/kraken/garbanzos/ac2f1146-c26b-45a7-b72d-3dcaa94c1913",
+    "type":        "DESI",
+    "diameter-mm": 4.5
+}
+```
+
+### `DELETE /octos/:octoName/garbanzos/:apiUUID`
+
+#### Request Parameters
+
+Field | Description
+--- | ---
+`octoName` | The name of the octo for which a garbanzo will be deleted.
+`apiUUID` | The API UUID of the garbanzo to be deleted.
+
+#### Response Statuses
+
+`204 - No Content`: Returned on success.
+`400 - Bad Request`: The request was malformed and could not be processed. The [standard error body](#standard-error-response-body) is returned.
+`404 - Not Found`: The requested garbanzo could not be found. The [standard error body](#standard-error-response-body) is returned.
+`500 - Internal Server Error`: Returned when there is an internal server error. The [standard error body](#standard-error-response-body) is returned.
