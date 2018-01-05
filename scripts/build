@@ -4,12 +4,14 @@ set -e
 
 cd $(dirname $0)/..
 
-IMAGE_DIR=tmp/docker-image
+IMAGE=$1
+MAIN_PATH=$2
 
-mkdir -p $IMAGE_DIR/persistence/ddl/
-cp persistence/ddl/* $IMAGE_DIR/persistence/ddl/
-cp Dockerfile tmp/
+IMAGE_DIR=tmp/$IMAGE/image/
 
-GOOS=linux GOARCH=amd64 go build -o $IMAGE_DIR/effective-octo-garbanzo github.com/myshkin5/effective-octo-garbanzo/api
+mkdir -p $IMAGE_DIR/
+cp -r docker/$IMAGE/ $IMAGE_DIR/
+mv $IMAGE_DIR/Dockerfile tmp/$IMAGE/
 
-docker build -t myshkin5/effective-octo-garbanzo:latest tmp/
+GOOS=linux GOARCH=amd64 go build -o $IMAGE_DIR/$IMAGE $MAIN_PATH
+docker build -t myshkin5/$IMAGE:latest tmp/$IMAGE/

@@ -61,9 +61,15 @@ Endpoint |
 [`GET /octos/:octoName/garbanzos/:apiUUID`](#get-octosoctonamegarbanzosapiuuid) |
 [`DELETE /octos/:octoName/garbanzos/:apiUUID`](#delete-octosoctonamegarbanzosapiuuid) |
 
+### Standard Request Headers
+
+#### Authorization
+All requests are validated by an `Authorization` header. The value must contain a JWT validated by the public key retrieved from the `VERIFIER_KEY_URI` endpoint.
+
 ### Standard Response Headers
 
-`Content-Type: application/json`
+#### Content Type
+This service only returns JSON responses. If there is a response body (the response status is not `204 - No Content`), the `Content-Type` response header is `application/json`.
 
 ### Standard Error Response Body
 
@@ -258,8 +264,6 @@ Field | Description
 `200 - OK`: Returned on success.
 
 `400 - Bad Request`: The request was malformed and could not be processed. The [standard error body](#standard-error-response-body) is returned.
-
-`404 - Not Found`: The requested octo could not be found. The [standard error body](#standard-error-response-body) is returned.
 
 `500 - Internal Server Error`: Returned when there is an internal server error. The [standard error body](#standard-error-response-body) is returned.
 

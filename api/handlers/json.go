@@ -15,7 +15,7 @@ func Respond(w http.ResponseWriter, code int, v interface{}) {
 	if v != nil {
 		bytes, err := json.Marshal(v)
 		if err != nil {
-			logs.Logger.Panic("Unexpected JSON marshal err", err)
+			logs.Logger.Panic("Unexpected JSON marshal err: ", err)
 		}
 
 		w.Write(bytes)

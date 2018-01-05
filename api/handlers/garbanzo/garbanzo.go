@@ -53,7 +53,7 @@ func (g *garbanzo) get(w http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	apiUUID, err := uuid.FromString(vars["apiUUID"])
 	if err != nil {
-		handlers.Error(w, handlers.INVALID_UUID, http.StatusBadRequest, err, fieldMapping)
+		handlers.Error(w, handlers.InvalidUUID, http.StatusBadRequest, err, fieldMapping)
 		return
 	}
 
@@ -74,7 +74,7 @@ func (g *garbanzo) delete(w http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	apiUUID, err := uuid.FromString(vars["apiUUID"])
 	if err != nil {
-		handlers.Error(w, handlers.INVALID_UUID, http.StatusBadRequest, err, fieldMapping)
+		handlers.Error(w, handlers.InvalidUUID, http.StatusBadRequest, err, fieldMapping)
 		return
 	}
 

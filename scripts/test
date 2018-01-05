@@ -28,7 +28,7 @@ set -e
 cd $(dirname $0)/..
 
 stop-integration-services() {
-    docker-compose --file scripts/integration-docker-compose.yml down
+    docker-compose --file ./docker/integration-docker-compose.yml down
 }
 
 DOCKER_STARTED=0
@@ -66,10 +66,13 @@ done
 
 echo -e "\033[1m\033[42m Integration tests...                                                           \033[0m"
 
-./scripts/build
+./scripts/build effective-octo-garbanzo \
+    github.com/myshkin5/effective-octo-garbanzo/api
+./scripts/build effective-octo-garbanzo-authentication-int-test \
+    github.com/myshkin5/effective-octo-garbanzo/api/integration/authentication
 
 stop-integration-services
-docker-compose --file ./scripts/integration-docker-compose.yml up -d --force-recreate
+docker-compose --file ./docker/integration-docker-compose.yml up -d --force-recreate
 DOCKER_STARTED=1
 
 export DB_SERVER=localhost

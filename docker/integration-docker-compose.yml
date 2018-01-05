@@ -8,9 +8,13 @@ services:
       - "8080:8080"
     links:
       - postgres
+      - effective-octo-garbanzo-authentication-int-test:auth
     environment:
       - DB_SERVER=postgres
       - SERVER_ADDR=0.0.0.0
+      - VERIFIER_KEY_INSECURE=true
+      - VERIFIER_KEY_URI=http://auth:8081/keys
+      - LOGIN_URI=http://auth:8081/login
   postgres:
     container_name: effective-octo-garbanzo-integration-postgres
     image: postgres:latest
@@ -19,3 +23,10 @@ services:
     environment:
       - POSTGRES_USER=garbanzo
       - POSTGRES_PASSWORD=garbanzo-secret
+  effective-octo-garbanzo-authentication-int-test:
+    container_name: effective-octo-garbanzo-integration-authentication-int-test
+    image: myshkin5/effective-octo-garbanzo-authentication-int-test:latest
+    ports:
+      - "8081:8081"
+    environment:
+      - SERVER_ADDR=0.0.0.0

@@ -34,6 +34,7 @@ func (g *octoCollection) get(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// Intentionally an empty slice so list is present in output even when empty
 	list := []Octo{}
 	for _, octo := range octos {
 		list = append(list, fromPersistence(octo, g.baseURL))
@@ -46,7 +47,7 @@ func (g *octoCollection) post(w http.ResponseWriter, req *http.Request) {
 	var dto Octo
 	err := json.NewDecoder(req.Body).Decode(&dto)
 	if err != nil {
-		handlers.Error(w, handlers.INVALID_JSON, http.StatusBadRequest, err, fieldMapping)
+		handlers.Error(w, handlers.InvalidJSON, http.StatusBadRequest, err, fieldMapping)
 		return
 	}
 

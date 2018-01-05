@@ -43,3 +43,9 @@
 [submodule "vendor/gopkg.in/yaml.v2"]
 	path = vendor/gopkg.in/yaml.v2
 	url = https://github.com/go-yaml/yaml.git
+[submodule "vendor/github.com/dgrijalva/jwt-go"]
+	path = vendor/github.com/dgrijalva/jwt-go
+	url = https://github.com/dgrijalva/jwt-go.git
+[submodule "vendor/github.com/mendsley/gojwk"]
+	path = vendor/github.com/mendsley/gojwk
+	url = https://github.com/mendsley/gojwk.git

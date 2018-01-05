@@ -37,6 +37,7 @@ func (g *garbanzoCollection) get(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// Intentionally an empty slice so list is present in output even when empty
 	list := []Garbanzo{}
 	for _, garbanzo := range garbanzos {
 		list = append(list, fromPersistence(garbanzo, g.baseURL, octoName))
@@ -49,7 +50,7 @@ func (g *garbanzoCollection) post(w http.ResponseWriter, req *http.Request) {
 	var dto Garbanzo
 	err := json.NewDecoder(req.Body).Decode(&dto)
 	if err != nil {
-		handlers.Error(w, handlers.INVALID_JSON, http.StatusBadRequest, err, fieldMapping)
+		handlers.Error(w, handlers.InvalidJSON, http.StatusBadRequest, err, fieldMapping)
 		return
 	}
 

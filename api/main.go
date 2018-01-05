@@ -1,19 +1,20 @@
 package main
 
 import (
+	"crypto/tls"
 	"fmt"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
 
-	gorilla_handlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/justinas/alice"
+	"github.com/myshkin5/effective-octo-garbanzo/identity"
 
 	"github.com/myshkin5/effective-octo-garbanzo/api/handlers"
 	"github.com/myshkin5/effective-octo-garbanzo/api/handlers/garbanzo"
 	"github.com/myshkin5/effective-octo-garbanzo/api/handlers/octo"
-	api_middleware "github.com/myshkin5/effective-octo-garbanzo/api/middleware"
+	apiMiddleware "github.com/myshkin5/effective-octo-garbanzo/api/middleware"
 	"github.com/myshkin5/effective-octo-garbanzo/logs"
 	"github.com/myshkin5/effective-octo-garbanzo/persistence"
 	"github.com/myshkin5/effective-octo-garbanzo/services"
@@ -50,34 +51,40 @@ func initLogging() {
 func initDatabase() persistence.Database {
 	database, err := persistence.Open()
 	if err != nil {
-		logs.Logger.Panic("Could not open database", err)
+		logs.Logger.Panic("Could not open database: ", err)
 	}
 
 	err = persistence.Migrate()
 	if err != nil {
-		logs.Logger.Panic("Could not migrate database", err)
+		logs.Logger.Panic("Could not migrate database: ", err)
 	}
 
 	return database
 }
 
-type loggingWriter struct{}
-
-func (w loggingWriter) Write(p []byte) (int, error) {
-	n := len(p)
-	logs.Logger.Info(string(p[:n-1]))
-	return n, nil
-}
-
 func initRoutes(port string, octoService *services.OctoService, garbanzoService *services.GarbanzoService) *mux.Router {
 	router := mux.NewRouter()
 
-	loggingHandler := func(handler http.Handler) http.Handler {
-		return gorilla_handlers.LoggingHandler(loggingWriter{}, handler)
-	}
-	headersHandler := api_middleware.StandardHeadersHandler
+	headersHandler := apiMiddleware.StandardHeadersHandler
 
-	middleware := alice.New(loggingHandler, headersHandler)
+	client := &http.Client{}
+	verifierKeyInsecure := os.Getenv("VERIFIER_KEY_INSECURE")
+	if verifierKeyInsecure == "true" {
+		client.Transport = &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+	}
+
+	verifierKeyURI := os.Getenv("VERIFIER_KEY_URI")
+	publicKeys := identity.MustFetchKeys(verifierKeyURI, client)
+	validator := identity.NewValidator(publicKeys)
+
+	loginURI := os.Getenv("LOGIN_URI")
+	authHandler := func(h http.Handler) http.Handler {
+		return apiMiddleware.AuthenticatedHandler(h, loginURI, validator)
+	}
+
+	middleware := alice.New(handlers.LoggingHandler, headersHandler, authHandler)
 
 	handlers.MapHealthRoutes(router, middleware)
 
@@ -113,6 +120,6 @@ func listenAndServe(serverAddr, port string, router *mux.Router) {
 	logs.Logger.Infof("Listening on %s:%s...", serverAddr, port)
 	err := http.ListenAndServe(serverAddr+":"+port, router)
 	if err != nil {
-		logs.Logger.Panic("ListenAndServe:", err)
+		logs.Logger.Panic("ListenAndServe: ", err)
 	}
 }

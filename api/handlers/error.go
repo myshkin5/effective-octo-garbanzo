@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	INVALID_JSON = "Body of request was not valid JSON"
-	INVALID_UUID = "Invalid UUID"
+	InvalidJSON = "Body of request was not valid JSON"
+	InvalidUUID = "Invalid UUID"
 )
 
 func Error(w http.ResponseWriter, error string, code int, err error, mapping map[string]string) {
@@ -66,7 +66,7 @@ func Error(w http.ResponseWriter, error string, code int, err error, mapping map
 
 	bytes, err := json.Marshal(ret)
 	if err != nil {
-		logs.Logger.Panic("Unexpected JSON marshal err", err)
+		logs.Logger.Panic("Unexpected JSON marshal err: ", err)
 	}
 
 	w.WriteHeader(code)

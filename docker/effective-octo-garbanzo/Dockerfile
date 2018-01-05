@@ -1,5 +1,5 @@
 FROM scratch
 
-COPY docker-image ./
+COPY image ./
 
 CMD ["./effective-octo-garbanzo"]
