@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 
 	"github.com/myshkin5/effective-octo-garbanzo/api/middleware"
+	"github.com/myshkin5/effective-octo-garbanzo/persistence"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -42,6 +43,7 @@ var _ = Describe("Authenticated", func() {
 
 	It("passes the request to the inner handler when the validator says the auth header is valid", func() {
 		mockValidator.IsValidOutput.IsValid <- true
+		mockValidator.IsValidOutput.Org <- "org1"
 
 		handler.ServeHTTP(recorder, request)
 
@@ -50,11 +52,13 @@ var _ = Describe("Authenticated", func() {
 		Expect(mockValidator.IsValidInput.AuthHeader).To(Receive(Equal("")))
 		var validRequest *http.Request
 		Expect(validRequests).To(Receive(&validRequest))
+		Expect(validRequest.Context().Value(persistence.OrgContextKey)).To(Equal("org1"))
 	})
 
 	It("doesn't pass the request to the inner handler when the validator says the auth header is invalid", func() {
 		request.Header.Add("Authorization", "bearer xyz123")
 		mockValidator.IsValidOutput.IsValid <- false
+		mockValidator.IsValidOutput.Org <- ""
 
 		handler.ServeHTTP(recorder, request)
 

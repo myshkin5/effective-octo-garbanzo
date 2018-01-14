@@ -12,6 +12,7 @@ type mockValidator struct {
 	}
 	IsValidOutput struct {
 		IsValid chan bool
+		Org     chan string
 	}
 }
 
@@ -20,10 +21,11 @@ func newMockValidator() *mockValidator {
 	m.IsValidCalled = make(chan bool, 100)
 	m.IsValidInput.AuthHeader = make(chan string, 100)
 	m.IsValidOutput.IsValid = make(chan bool, 100)
+	m.IsValidOutput.Org = make(chan string, 100)
 	return m
 }
-func (m *mockValidator) IsValid(authHeader string) (isValid bool) {
+func (m *mockValidator) IsValid(authHeader string) (isValid bool, org string) {
 	m.IsValidCalled <- true
 	m.IsValidInput.AuthHeader <- authHeader
-	return <-m.IsValidOutput.IsValid
+	return <-m.IsValidOutput.IsValid, <-m.IsValidOutput.Org
 }

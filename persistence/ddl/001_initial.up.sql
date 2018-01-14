@@ -1,6 +1,13 @@
-create table octo (
-  id   serial      primary key,
+create table org (
+  id   smallserial primary key,
   name varchar(40) unique
+);
+
+create table octo (
+  id     serial      primary key,
+  name   varchar(40),
+  org_id smallint    not null references org(id),
+  unique(name, org_id)
 );
 
 create table garbanzo_type (

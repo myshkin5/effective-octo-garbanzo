@@ -31,51 +31,139 @@ var _ = Describe("Validator", func() {
 		validator = identity.NewValidator(publicKeys)
 	})
 
-	createJWT := func(keyId interface{}, validSeconds int64) string {
-		claims := jwt.StandardClaims{
-			ExpiresAt: time.Now().Unix() + validSeconds,
+	type jwtRequest struct {
+		keyId        interface{}
+		algorithm    string
+		method       jwt.SigningMethod
+		validSeconds int64
+		org          string
+		signingKey   interface{}
+	}
+
+	createJWT := func(request jwtRequest) string {
+		claims := identity.CustomClaims{
+			Org: request.org,
+			StandardClaims: jwt.StandardClaims{
+				ExpiresAt: time.Now().Unix() + request.validSeconds,
+			},
 		}
 		token := &jwt.Token{
 			Header: map[string]interface{}{
-				"kid": keyId,
-				"alg": jwt.SigningMethodRS256.Alg(),
+				"kid": request.keyId,
+				"alg": request.algorithm,
 			},
-			Claims: claims,
-			Method: jwt.SigningMethodRS256,
+			Claims: &claims,
+			Method: request.method,
 		}
-		signedString, err := token.SignedString(privateKey)
+		signedString, err := token.SignedString(request.signingKey)
 		ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
 		return signedString
 	}
 
 	It("reports bogus headers as invalid", func() {
-		ok := validator.IsValid("bogus")
+		ok, _ := validator.IsValid("bogus")
 		Expect(ok).To(BeFalse())
 	})
 
 	It("reports bogus tokens as invalid", func() {
-		ok := validator.IsValid("bearer bogus")
+		ok, _ := validator.IsValid("bearer bogus")
 		Expect(ok).To(BeFalse())
 	})
 
 	It("reports good tokens as valid regardless of the prefix case", func() {
-		ok := validator.IsValid("Bearer " + createJWT("joe", 5))
+		ok, org := validator.IsValid("Bearer " + createJWT(jwtRequest{
+			keyId:        "joe",
+			algorithm:    "RS256",
+			method:       jwt.SigningMethodRS256,
+			validSeconds: 500,
+			org:          "org1",
+			signingKey:   privateKey,
+		}))
 		Expect(ok).To(BeTrue())
+		Expect(org).To(Equal("org1"))
 	})
 
 	It("reports non-string key ids as invalid", func() {
-		ok := validator.IsValid("Bearer " + createJWT(22, 5))
+		ok, _ := validator.IsValid("Bearer " + createJWT(jwtRequest{
+			keyId:        22,
+			algorithm:    "RS256",
+			method:       jwt.SigningMethodRS256,
+			validSeconds: 5,
+			org:          "org1",
+			signingKey:   privateKey,
+		}))
 		Expect(ok).To(BeFalse())
 	})
 
 	It("reports expired tokens as invalid", func() {
-		ok := validator.IsValid("Bearer " + createJWT("joe", -5))
+		ok, _ := validator.IsValid("Bearer " + createJWT(jwtRequest{
+			keyId:        "joe",
+			algorithm:    "RS256",
+			method:       jwt.SigningMethodRS256,
+			validSeconds: -5,
+			org:          "org1",
+			signingKey:   privateKey,
+		}))
 		Expect(ok).To(BeFalse())
 	})
 
 	It("reports good tokens with no matching key as invalid", func() {
-		ok := validator.IsValid("Bearer " + createJWT("alice", 5))
+		ok, _ := validator.IsValid("Bearer " + createJWT(jwtRequest{
+			keyId:        "alice",
+			algorithm:    "RS256",
+			method:       jwt.SigningMethodRS256,
+			validSeconds: 5,
+			org:          "org1",
+			signingKey:   privateKey,
+		}))
+		Expect(ok).To(BeFalse())
+	})
+
+	It("reports tokens with bad algorithms as invalid", func() {
+		ok, _ := validator.IsValid("Bearer " + createJWT(jwtRequest{
+			keyId:        "joe",
+			algorithm:    "none",
+			method:       jwt.SigningMethodRS256,
+			validSeconds: 5,
+			org:          "org1",
+			signingKey:   privateKey,
+		}))
+		Expect(ok).To(BeFalse())
+	})
+
+	It("reports tokens with bad signing methods as invalid", func() {
+		ok, _ := validator.IsValid("Bearer " + createJWT(jwtRequest{
+			keyId:        "joe",
+			algorithm:    "RS256",
+			method:       jwt.SigningMethodNone,
+			validSeconds: 5,
+			org:          "org1",
+			signingKey:   jwt.UnsafeAllowNoneSignatureType,
+		}))
+		Expect(ok).To(BeFalse())
+	})
+
+	It("reports tokens with bad signing methods and bad algorithms as invalid", func() {
+		ok, _ := validator.IsValid("Bearer " + createJWT(jwtRequest{
+			keyId:        "joe",
+			algorithm:    "none",
+			method:       jwt.SigningMethodNone,
+			validSeconds: 5,
+			org:          "org1",
+			signingKey:   jwt.UnsafeAllowNoneSignatureType,
+		}))
+		Expect(ok).To(BeFalse())
+	})
+
+	It("reports good tokens with no org claim as invalid", func() {
+		ok, _ := validator.IsValid("Bearer " + createJWT(jwtRequest{
+			keyId:        "joe",
+			algorithm:    "RS256",
+			method:       jwt.SigningMethodRS256,
+			validSeconds: 5,
+			signingKey:   privateKey,
+		}))
 		Expect(ok).To(BeFalse())
 	})
 })

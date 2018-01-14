@@ -2,25 +2,34 @@ package persistence_test
 
 import (
 	"context"
+	"fmt"
+	"time"
 
+	"github.com/myshkin5/effective-octo-garbanzo/logs"
 	"github.com/myshkin5/effective-octo-garbanzo/persistence"
 )
 
-func cleanDatabase(database persistence.Database) error {
-	ctx := context.Background()
-	err := cleanTable(ctx, "garbanzo", database)
-	if err != nil {
-		return err
-	}
-	err = cleanTable(ctx, "octo", database)
-	if err != nil {
-		return err
-	}
-	return nil
+var ctx = context.Background()
+
+func cleanDatabase(database persistence.Database) {
+	execute("delete from garbanzo", database)
+	execute("delete from octo", database)
+	execute("delete from org where name like 'int_test_org_%'", database)
 }
 
-func cleanTable(ctx context.Context, table string, database persistence.Database) error {
-	query := "delete from " + table
+func execute(query string, database persistence.Database) {
 	_, err := database.Exec(ctx, query)
-	return err
+	if err != nil {
+		logs.Logger.Panicf("Error cleaning database with query %s: %v", query, err)
+	}
+}
+
+func createOrg(suffix string, database persistence.Database) (int, string) {
+	name := fmt.Sprintf("int_test_org_%d_%s", time.Now().Sub(start), suffix)
+	id, err := persistence.ExecInsert(ctx, database, "insert into org (name) values ($1) returning id", name)
+	if err != nil {
+		logs.Logger.Panicf("Error creating org %s: %v", name, err)
+	}
+
+	return id, name
 }

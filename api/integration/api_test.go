@@ -1,6 +1,7 @@
 package integration_test
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -11,6 +12,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/myshkin5/effective-octo-garbanzo/persistence"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -26,7 +28,28 @@ const (
 )
 
 var _ = Describe("API", func() {
-	var token string
+	var (
+		database persistence.Database
+		token    string
+	)
+
+	BeforeSuite(func() {
+		var err error
+		database, err = persistence.Open()
+		Expect(err).NotTo(HaveOccurred())
+
+		_, err = database.Exec(context.Background(), "insert into org (name) values ('org1') returning id")
+		Expect(err).NotTo(HaveOccurred())
+	})
+
+	AfterSuite(func() {
+		_, err := database.Exec(context.Background(), "delete from garbanzo")
+		Expect(err).NotTo(HaveOccurred())
+		_, err = database.Exec(context.Background(), "delete from octo")
+		Expect(err).NotTo(HaveOccurred())
+		_, err = database.Exec(context.Background(), "delete from org where name = 'org1'")
+		Expect(err).NotTo(HaveOccurred())
+	})
 
 	BeforeEach(func() {
 		response, err := http.Get("http://localhost:8081/token")

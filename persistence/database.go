@@ -32,6 +32,12 @@ type Database interface {
 	Rollback() (err error)
 }
 
+const OrgContextKey = "org"
+
+func org(ctx context.Context) string {
+	return ctx.Value(OrgContextKey).(string)
+}
+
 func Open() (Database, error) {
 	db, err := sql.Open("postgres", getDatabaseURL())
 	if err != nil {

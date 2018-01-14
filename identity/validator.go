@@ -2,6 +2,7 @@ package identity
 
 import (
 	"crypto/rsa"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -13,6 +14,24 @@ type Validator struct {
 	publicKeys map[string]*rsa.PublicKey
 }
 
+type CustomClaims struct {
+	Org string `json:"custom:org"`
+	jwt.StandardClaims
+}
+
+func (c *CustomClaims) Valid() error {
+	err := c.StandardClaims.Valid()
+	if err != nil {
+		return err
+	}
+
+	if len(c.Org) == 0 {
+		return errors.New("org not specified in claims")
+	}
+
+	return nil
+}
+
 const bearerPrefix = "bearer "
 
 func NewValidator(publicKeys map[string]*rsa.PublicKey) *Validator {
@@ -21,14 +40,15 @@ func NewValidator(publicKeys map[string]*rsa.PublicKey) *Validator {
 	}
 }
 
-func (v *Validator) IsValid(authHeader string) bool {
+func (v *Validator) IsValid(authHeader string) (ok bool, org string) {
 	if !strings.HasPrefix(strings.ToLower(authHeader), bearerPrefix) {
 		logs.Logger.Infof("Authentication header lacks %sprefix", bearerPrefix)
-		return false
+		return false, ""
 	}
 
 	tokenString := authHeader[len(bearerPrefix):]
-	_, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+	var claims CustomClaims
+	_, err := jwt.ParseWithClaims(tokenString, &claims, func(token *jwt.Token) (interface{}, error) {
 		keyId, ok := token.Header["kid"].(string)
 		if !ok {
 			return nil, fmt.Errorf("key id (kid) is not a string in headers: %v", token.Header)
@@ -43,8 +63,8 @@ func (v *Validator) IsValid(authHeader string) bool {
 	})
 	if err != nil {
 		logs.Logger.Infof("Error parsing authentication header, %v", err)
-		return false
+		return false, ""
 	}
 
-	return true
+	return true, claims.Org
 }

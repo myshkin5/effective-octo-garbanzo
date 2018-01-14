@@ -57,14 +57,14 @@ GINKGO_OPTS="-r
     --progress
     $@"
 
-echo -e "\033[1m\033[42m Unit tests...                                                                  \033[0m"
+echo -e "\033[1m\033[42m Running unit tests...                                                          \033[0m"
 ginkgo -r --skip="$INTEGRATION_REGEXP" $GINKGO_OPTS
 
 for FILE in $(find . -name \*.coverprofile) ; do
     mv -f $FILE $(dirname $FILE)/$(basename $FILE .coverprofile)_unit.coverprofile
 done
 
-echo -e "\033[1m\033[42m Integration tests...                                                           \033[0m"
+echo -e "\033[1m\033[42m Running integration tests...                                                   \033[0m"
 
 ./scripts/build effective-octo-garbanzo \
     github.com/myshkin5/effective-octo-garbanzo/api

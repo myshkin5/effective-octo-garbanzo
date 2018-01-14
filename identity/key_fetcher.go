@@ -34,8 +34,6 @@ func MustFetchKeys(verifierKeyURI string, client HTTPClient) map[string]*rsa.Pub
 }
 
 func FetchKeys(verifierKeyURI string, client HTTPClient) (map[string]*rsa.PublicKey, error) {
-	logs.Logger.Infof("Fetching public key from %s", verifierKeyURI)
-
 	response, err := client.Get(verifierKeyURI)
 	if err != nil {
 		return nil, err
@@ -45,6 +43,8 @@ func FetchKeys(verifierKeyURI string, client HTTPClient) (map[string]*rsa.Public
 	if response.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("auth server returned a non-200 response code, code was %d", response.StatusCode)
 	}
+
+	logs.Logger.Infof("Successfully fetched public key from %s", verifierKeyURI)
 
 	bytes, err := ioutil.ReadAll(response.Body)
 	if err != nil {

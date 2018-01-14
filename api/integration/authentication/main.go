@@ -12,6 +12,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/justinas/alice"
 	"github.com/myshkin5/effective-octo-garbanzo/api/handlers"
+	"github.com/myshkin5/effective-octo-garbanzo/identity"
 
 	"github.com/myshkin5/effective-octo-garbanzo/logs"
 	"github.com/myshkin5/effective-octo-garbanzo/persistence"
@@ -62,15 +63,18 @@ func initRoutes() *mux.Router {
 		})
 	}))
 
-	claims := jwt.StandardClaims{
-		ExpiresAt: time.Now().Unix() + 300,
+	claims := identity.CustomClaims{
+		Org: "org1",
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(time.Hour).Unix(),
+		},
 	}
 	token := &jwt.Token{
 		Header: map[string]interface{}{
 			"kid": "the-one-and-only",
 			"alg": jwt.SigningMethodRS256.Alg(),
 		},
-		Claims: claims,
+		Claims: &claims,
 		Method: jwt.SigningMethodRS256,
 	}
 	signedString, err := token.SignedString(privateKey)
